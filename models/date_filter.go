@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-const apiDateFormat = "2006-01-02"
-
 type calendarUnit string
+type dateAttribute string
+type DateFilters []DateFilter
 
 const (
 	minute calendarUnit = "minute"
@@ -18,15 +18,13 @@ const (
 	day    calendarUnit = "day"
 	month  calendarUnit = "month"
 	year   calendarUnit = "year"
-)
 
-type dateAttribute string
-
-const (
 	created dateAttribute = "created"
 	updated dateAttribute = "updated"
 	solved  dateAttribute = "solved"
 	dueDate dateAttribute = "due_date"
+
+	apiDateFormat = "2006-01-02"
 )
 
 var validAttributes = [4]dateAttribute{created, updated, solved, dueDate}
@@ -141,6 +139,19 @@ func (df *DateFilter) BuildQuery(t *time.Time) string {
 	} else {
 		bf.WriteString(">")
 		bf.WriteString(df.getDateAPIFormat(t))
+	}
+
+	return bf.String()
+}
+
+func (df DateFilters) BuildQuery(t *time.Time) string {
+	var bf bytes.Buffer
+
+	for i, d := range df {
+		bf.WriteString(d.BuildQuery(t))
+		if i != len(df)-1 {
+			bf.WriteString(" ")
+		}
 	}
 
 	return bf.String()

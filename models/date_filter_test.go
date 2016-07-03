@@ -236,3 +236,33 @@ func TestBuildQuery(t *testing.T) {
 		}
 	}
 }
+
+func TestDateRangeBuildQuery(t *testing.T) {
+	dr1 := DateFilters{
+		{
+			Unit: month,
+			Past: 2,
+		},
+		{
+			Attribute: "updated",
+			Custom:    "<2017-01-01",
+		},
+	}
+
+	dr2 := DateFilters{
+		{
+			Unit: month,
+			Past: 2,
+		},
+	}
+
+	output1 := dr1.BuildQuery(&staticTime)
+	if output1 != "created>2016-04-01 updated<2017-01-01" {
+		t.Errorf("Built query output not matched got %s", output1)
+	}
+
+	output2 := dr2.BuildQuery(&staticTime)
+	if output2 != "created>2016-04-01" {
+		t.Errorf("Built query output not matched got %s", output2)
+	}
+}
