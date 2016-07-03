@@ -1,13 +1,18 @@
 package models
 
 import (
+	"encoding/json"
 	"testing"
+	"time"
 )
 
+var staticTime = time.Date(2016, time.June, 01, 0, 0, 0, 0, time.FixedZone("BST", 1))
+
 type TestCase struct {
-	DF       DateFilter
-	Valid    bool
-	ErrorMsg string
+	DF            DateFilter
+	ExpectedQuery string
+	Valid         bool
+	ErrorMsg      string
 }
 
 func TestValidateDateFilter(t *testing.T) {
@@ -96,7 +101,7 @@ func TestValidateDateFilter(t *testing.T) {
 				Past:      10,
 			},
 			Valid:    false,
-			ErrorMsg: "Unit is required one of [minute hour day month year]",
+			ErrorMsg: "Unit is required one of [day month year]",
 		},
 		{
 			DF: DateFilter{
@@ -105,7 +110,7 @@ func TestValidateDateFilter(t *testing.T) {
 				Past:      10,
 			},
 			Valid:    false,
-			ErrorMsg: "Unit is required one of [minute hour day month year]",
+			ErrorMsg: "Unit is required one of [day month year]",
 		},
 		{
 			DF: DateFilter{
@@ -182,5 +187,52 @@ func TestDefaultAttribureWhenAttributeMissing(t *testing.T) {
 		df.Past != 10 ||
 		df.Custom != "2016-01-01" {
 		t.Errorf("Expected the attribute to change to created but got %v", df)
+	}
+}
+
+func TestAddDateAPIFormat(t *testing.T) {
+	testCases := []map[string]string{
+		{"Input": `{"Past": 3, "Unit": "day"}`, "Output": "2016-05-29"},
+		{"Input": `{"Past": 3, "Unit": "month"}`, "Output": "2016-03-01"},
+		{"Input": `{"Past": 1, "Unit": "year"}`, "Output": "2015-06-01"},
+		{"Input": `{"Past": 25, "Unit": "hour"}`, "Output": "2016-06-01"},
+		{"Input": `{"Past": 2880, "Unit": "minute"}`, "Output": "2016-06-01"},
+	}
+
+	for _, tc := range testCases {
+		var df DateFilter
+		err := json.Unmarshal([]byte(tc["Input"]), &df)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		output := df.getDateAPIFormat(&staticTime)
+
+		if output != tc["Output"] {
+			t.Errorf("Expected output to be %s but got %s", tc["Output"], output)
+		}
+	}
+}
+
+func TestBuildQuery(t *testing.T) {
+	testCases := []map[string]string{
+		{"Input": `{"Past": 1, "Unit": "month"}`, "Output": "created>2016-05-01"},
+		{"Input": `{"Attribute": "updated", "Past": 7, "Unit": "day"}`, "Output": "updated>2016-05-25"},
+		{"Input": `{"Attribute": "solved", "Custom": ">2016-02-11"}`, "Output": "solved>2016-02-11"},
+		{"Input": `{"Attribute": "due_date", "Custom": "<=2016-02-11"}`, "Output": "due_date<=2016-02-11"},
+	}
+
+	for _, tc := range testCases {
+		var df DateFilter
+		err := json.Unmarshal([]byte(tc["Input"]), &df)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		output := df.BuildQuery(&staticTime)
+
+		if output != tc["Output"] {
+			t.Errorf("Expected output to be %s but got %s", tc["Output"], output)
+		}
 	}
 }

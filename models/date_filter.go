@@ -1,10 +1,14 @@
 package models
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 )
+
+const apiDateFormat = "2006-01-02"
 
 type calendarUnit string
 
@@ -26,7 +30,7 @@ const (
 )
 
 var validAttributes = [4]dateAttribute{created, updated, solved, dueDate}
-var validCalendarUnits = [5]calendarUnit{minute, hour, day, month, year}
+var validCalendarUnits = [3]calendarUnit{day, month, year}
 var validDateOperators = [3]string{">", ":", "<"}
 
 // DateFilter represents a date filter on the zendesk search api
@@ -102,4 +106,42 @@ func (df *DateFilter) attributeValid() bool {
 	}
 
 	return false
+}
+
+func (df *DateFilter) getDateAPIFormat(t *time.Time) string {
+	minusPast := df.Past * -1
+
+	switch df.Unit {
+	case day:
+		return t.AddDate(0, 0, minusPast).Format(apiDateFormat)
+	case month:
+		return t.AddDate(0, minusPast, 0).Format(apiDateFormat)
+	case year:
+		return t.AddDate(minusPast, 0, 0).Format(apiDateFormat)
+	}
+
+	return t.Format(apiDateFormat)
+}
+
+func (df *DateFilter) BuildQuery(t *time.Time) string {
+	var bf bytes.Buffer
+
+	if df.Attribute == "" {
+		df.defaultAttribute()
+	}
+
+	if t == nil {
+		n := time.Now()
+		t = &n
+	}
+
+	bf.WriteString(string(df.Attribute))
+	if df.Custom != "" {
+		bf.WriteString(df.Custom)
+	} else {
+		bf.WriteString(">")
+		bf.WriteString(df.getDateAPIFormat(t))
+	}
+
+	return bf.String()
 }
