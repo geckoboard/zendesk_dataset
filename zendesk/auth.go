@@ -6,7 +6,7 @@ import (
 	"github.com/jnormington/geckoboard_zendesk/conf"
 )
 
-func buildRequestWithAuth(cf *conf.Zendesk, method, path string) (*http.Request, error) {
+func buildRequestWithAuth(cf *conf.Client, method, path string) (*http.Request, error) {
 	req, err := http.NewRequest(method, path, nil)
 
 	if err != nil {
