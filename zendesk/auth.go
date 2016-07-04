@@ -3,20 +3,20 @@ package zendesk
 import (
 	"net/http"
 
-	m "github.com/jnormington/geckoboard_zendesk/models"
+	"github.com/jnormington/geckoboard_zendesk/conf"
 )
 
-func buildRequestWithAuth(conf *m.Zendesk, method, path string) (*http.Request, error) {
+func buildRequestWithAuth(cf *conf.Zendesk, method, path string) (*http.Request, error) {
 	req, err := http.NewRequest(method, path, nil)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if conf.Password != "" {
-		req.SetBasicAuth(conf.Email, conf.Password)
+	if cf.Password != "" {
+		req.SetBasicAuth(cf.Email, cf.Password)
 	} else {
-		req.SetBasicAuth(conf.Email+"/token", conf.APIKey)
+		req.SetBasicAuth(cf.Email+"/token", cf.APIKey)
 	}
 
 	return req, nil

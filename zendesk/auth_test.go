@@ -3,11 +3,11 @@ package zendesk
 import (
 	"testing"
 
-	m "github.com/jnormington/geckoboard_zendesk/models"
+	"github.com/jnormington/geckoboard_zendesk/conf"
 )
 
 type TestCase struct {
-	Config   m.Zendesk
+	Config   conf.Zendesk
 	Method   string
 	Path     string
 	Expected Expected
@@ -22,7 +22,7 @@ type Expected struct {
 func TestBuildRequestWithAuth(t *testing.T) {
 	testCases := []TestCase{
 		{
-			Config: m.Zendesk{
+			Config: conf.Zendesk{
 				URL:    "https://test.domain.com",
 				Email:  "test@example.com",
 				APIKey: "1234abc",
@@ -36,7 +36,7 @@ func TestBuildRequestWithAuth(t *testing.T) {
 			},
 		},
 		{
-			Config: m.Zendesk{
+			Config: conf.Zendesk{
 				URL:      "https://test.domain.com",
 				Email:    "test@example.com",
 				Password: "9876cba",
