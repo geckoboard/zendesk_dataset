@@ -15,7 +15,7 @@ func TestConfigLoadFromFile(t *testing.T) {
 			URL:    "https://testing.geckoboardexample.com",
 		},
 		Zendesk: Zendesk{
-			Client: Client{
+			Auth: Auth{
 				Email:     "test@example.com",
 				APIKey:    "12345",
 				Subdomain: "testing",

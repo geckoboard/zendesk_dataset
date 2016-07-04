@@ -15,7 +15,7 @@ type Geckoboard struct {
 	URL    string `json:"url"`
 }
 
-type Client struct {
+type Auth struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	APIKey    string `json:"api_key"`
@@ -23,7 +23,7 @@ type Client struct {
 }
 
 type Zendesk struct {
-	Client  Client   `json:"auth"`
+	Auth    Auth     `json:"auth"`
 	Reports []Report `json:"reports"`
 }
 
