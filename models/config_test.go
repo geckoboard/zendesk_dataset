@@ -19,6 +19,36 @@ func TestConfigLoadFromFile(t *testing.T) {
 			APIKey:   "12345",
 			URL:      "http://testing.zendesk.com",
 			Password: "test",
+			Reports: []Report{
+				{
+					Name:    "report_1",
+					DataSet: "dataset1",
+					Filter: SearchFilter{
+						Type: "ticket",
+						DateRange: []DateFilter{
+							{
+								Attribute: created,
+								Unit:      day,
+								Past:      14,
+							},
+							{
+								Attribute: created,
+								Custom:    "<2017-01-01",
+							},
+						},
+						Value: map[string]string{
+							"status:": "open",
+						},
+						Values: map[string][]string{
+							"tags:": []string{
+								"beta",
+								"freetrial",
+								"account_expired",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 

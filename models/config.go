@@ -16,10 +16,17 @@ type Geckoboard struct {
 }
 
 type Zendesk struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	APIKey   string `json:"api_key"`
-	URL      string `json:"url"`
+	Email    string   `json:"email"`
+	Password string   `json:"password"`
+	APIKey   string   `json:"api_key"`
+	URL      string   `json:"url"`
+	Reports  []Report `json:"reports"`
+}
+
+type Report struct {
+	Name    string       `json:"name"`
+	DataSet string       `json:"dataset"`
+	Filter  SearchFilter `json:"filter"`
 }
 
 func LoadConfig(path string) (*Config, error) {

@@ -19,10 +19,10 @@ const (
 var validOperators = [5]string{">", ":", "<", ">=", "<="}
 
 type SearchFilter struct {
-	Type      string
-	DateRange DateFilters
-	Value     map[string]string
-	Values    map[string][]string
+	Type      string              `json:"type"`
+	DateRange DateFilters         `json:"date_range"`
+	Value     map[string]string   `json:"value"`
+	Values    map[string][]string `json:"values"`
 }
 
 func (sf *SearchFilter) Validate() error {
