@@ -30,7 +30,21 @@ type Zendesk struct {
 type Report struct {
 	Name    string       `json:"name"`
 	DataSet string       `json:"dataset"`
+	GroupBy GroupBy      `json:"group_by"`
 	Filter  SearchFilter `json:"filter"`
+}
+
+type GroupBy struct {
+	Key  string `json:"key"`
+	Name string `json:"name"`
+}
+
+func (gb *GroupBy) DisplayName() string {
+	if gb.Name == "" && gb.Key != "" {
+		return gb.Key
+	}
+
+	return gb.Name
 }
 
 func LoadConfig(path string) (*Config, error) {
