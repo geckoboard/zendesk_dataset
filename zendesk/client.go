@@ -67,33 +67,37 @@ func (c *Client) SearchTickets(queryParams string) (*TicketPayload, error) {
 	res := TicketPayload{}
 	var tp []Ticket
 
-	err := c.searchTickets(queryParams, &tp)
+	totalCount, err := c.searchTickets(queryParams, &tp)
 	if err != nil {
 		return nil, err
 	}
 
 	res.Tickets = tp
-	res.Count = len(tp)
+	if c.PaginateResults {
+		res.Count = len(tp)
+	} else {
+		res.Count = totalCount
+	}
 
 	return &res, nil
 }
 
-func (c *Client) searchTickets(queryParam string, t *[]Ticket) error {
+func (c *Client) searchTickets(queryParam string, t *[]Ticket) (int, error) {
 	req, err := c.buildRequest("GET", searchPath, queryParam)
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	var tp TicketPayload
 	err = json.NewDecoder(resp.Body).Decode(&tp)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	for _, tck := range tp.Tickets {
@@ -101,11 +105,11 @@ func (c *Client) searchTickets(queryParam string, t *[]Ticket) error {
 	}
 
 	if c.PaginateResults && tp.NextPage != "" {
-		err = c.searchTickets(tp.NextPage, t)
+		_, err = c.searchTickets(tp.NextPage, t)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	}
 
-	return nil
+	return tp.Count, nil
 }

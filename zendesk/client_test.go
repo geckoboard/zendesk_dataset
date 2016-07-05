@@ -105,12 +105,13 @@ func TestSearchTickets(t *testing.T) {
 			Requests: []Request{
 				{
 					FullPath: "/api/v2/search.json?query=type%3Aticket+status%3Apending",
+					//Mimic pagination not happening and the count being more than the first page
 					ResponseBody: `{"results": [{"id": 1, "tags": ["beta", "test"]},` +
-						`{"id": 2, "tags": ["expired", "test"]}], "count": 2, "next_page": ""}`,
+						`{"id": 2, "tags": ["expired", "test"]}], "count": 40, "next_page": ""}`,
 				},
 			},
 			ExpectedTicketPayload: TicketPayload{
-				Count: 2,
+				Count: 40,
 				Tickets: []Ticket{
 					{ID: 1, Tags: []string{"beta", "test"}},
 					{ID: 2, Tags: []string{"expired", "test"}},
