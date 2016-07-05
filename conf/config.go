@@ -15,12 +15,16 @@ type Geckoboard struct {
 	URL    string `json:"url"`
 }
 
+type Auth struct {
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	APIKey    string `json:"api_key"`
+	Subdomain string `json:"subdomain"`
+}
+
 type Zendesk struct {
-	Email    string   `json:"email"`
-	Password string   `json:"password"`
-	APIKey   string   `json:"api_key"`
-	URL      string   `json:"url"`
-	Reports  []Report `json:"reports"`
+	Auth    Auth     `json:"auth"`
+	Reports []Report `json:"reports"`
 }
 
 type Report struct {

@@ -15,10 +15,12 @@ func TestConfigLoadFromFile(t *testing.T) {
 			URL:    "https://testing.geckoboardexample.com",
 		},
 		Zendesk: Zendesk{
-			Email:    "test@example.com",
-			APIKey:   "12345",
-			URL:      "http://testing.zendesk.com",
-			Password: "test",
+			Auth: Auth{
+				Email:     "test@example.com",
+				APIKey:    "12345",
+				Subdomain: "testing",
+				Password:  "test",
+			},
 			Reports: []Report{
 				{
 					Name:    "report_1",
