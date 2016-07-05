@@ -163,7 +163,7 @@ func TestPresetNotFoundError(t *testing.T) {
 		t.Fatal("Expected error that preset not found but got nothing")
 	}
 
-	exp := "Err: Report name ticket_by_some_count was not found"
+	exp := "Report name ticket_by_some_count was not found"
 	if err.Error() != exp {
 		t.Errorf("Expected error message %s but got %s", exp, err)
 	}

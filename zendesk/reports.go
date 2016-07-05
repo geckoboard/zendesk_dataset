@@ -17,10 +17,10 @@ func HandleReports(c *conf.Config) error {
 		switch r.Name {
 		case TicketCount:
 			if err := ticketCount(&r, c); err != nil {
-				return fmt.Errorf("Err: Processing dataset report '%s' failed with: %s", r.DataSet, ticketCount(&r, c))
+				return fmt.Errorf("Processing dataset report '%s' failed with: %s", r.DataSet, ticketCount(&r, c))
 			}
 		default:
-			return fmt.Errorf("Err: Report name %s was not found", r.Name)
+			return fmt.Errorf("Report name %s was not found", r.Name)
 		}
 	}
 
