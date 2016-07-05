@@ -2,6 +2,7 @@ package zendesk
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	gb "github.com/geckoboard/geckoboard-go"
@@ -12,19 +13,25 @@ const TicketCount = "ticket_counts"
 
 var timeNow = time.Now()
 
-func HandleReports(c *conf.Config) error {
+func HandleReports(c *conf.Config) {
 	for _, r := range c.Zendesk.Reports {
+		var rptError string
+
 		switch r.Name {
 		case TicketCount:
 			if err := ticketCount(&r, c); err != nil {
-				return fmt.Errorf("Processing dataset report '%s' failed with: %s", r.DataSet, ticketCount(&r, c))
+				rptError = err.Error()
 			}
 		default:
-			return fmt.Errorf("Report name %s was not found", r.Name)
+			rptError = fmt.Sprintf("Report name %s was not found", r.Name)
+		}
+
+		if rptError == "" {
+			log.Printf("INFO: Processing report '%s' completed successfully", r.DataSet)
+		} else {
+			log.Printf("ERRO: Processing report '%s' failed with: %s", r.DataSet, rptError)
 		}
 	}
-
-	return nil
 }
 
 func ticketCount(r *conf.Report, c *conf.Config) error {

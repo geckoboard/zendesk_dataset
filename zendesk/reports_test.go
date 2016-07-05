@@ -135,37 +135,11 @@ func TestHandleReports(t *testing.T) {
 		timeNow = time.Date(2016, 06, 01, 0, 0, 0, 0, time.UTC)
 		tc.Config.Geckoboard.URL = gserver.URL
 
-		err := HandleReports(&tc.Config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		HandleReports(&tc.Config)
 
 		if tc.RequestCount != tc.ExpectedTotalRequestCount {
 			t.Errorf("Expected %d requests but got %d", tc.ExpectedTotalRequestCount, tc.RequestCount)
 		}
-	}
-}
-
-func TestPresetNotFoundError(t *testing.T) {
-	conf := &conf.Config{
-		Zendesk: conf.Zendesk{
-			Reports: []conf.Report{
-				{
-					Name: "ticket_by_some_count",
-				},
-			},
-		},
-	}
-
-	err := HandleReports(conf)
-
-	if err == nil {
-		t.Fatal("Expected error that preset not found but got nothing")
-	}
-
-	exp := "Report name ticket_by_some_count was not found"
-	if err.Error() != exp {
-		t.Errorf("Expected error message %s but got %s", exp, err)
 	}
 }
 

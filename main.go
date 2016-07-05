@@ -16,18 +16,13 @@ func main() {
 	config, err := conf.LoadConfig(*configPath)
 
 	if err != nil {
-		log.Fatalf("Err: Problem with the config: %s\n", err)
+		log.Fatalf("ERRO: Problem with the config: %s\n", err)
 	}
 
 	if len(config.Zendesk.Reports) == 0 {
-		log.Fatal("Err: You have no reports setup in your config under zendesk")
+		log.Fatal("ERRO: You have no reports setup in your config under zendesk")
 	}
 
-	err = zendesk.HandleReports(config)
-
-	if err != nil {
-		log.Fatalf("Err: %s\n", err)
-	}
-
-	log.Println("Completed with no errors, apparently...")
+	zendesk.HandleReports(config)
+	log.Println("Completed processing all reports...")
 }
