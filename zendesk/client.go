@@ -21,6 +21,13 @@ var client = &http.Client{Timeout: time.Second * 10}
 
 const searchPath = "/search.json"
 
+func NewClient(auth *conf.Auth, paginateResults bool) *Client {
+	return &Client{
+		Auth:            *auth,
+		PaginateResults: paginateResults,
+	}
+}
+
 func (c *Client) buildRequest(method, path, queryParams string) (*http.Request, error) {
 	var uri string
 	domain := fmt.Sprintf(domainURL, c.Auth.Subdomain)
