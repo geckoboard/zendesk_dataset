@@ -199,7 +199,7 @@ func TestSearchFilterBuildQuery(t *testing.T) {
 					},
 				},
 			},
-			Output: "type:ticket created>2016-04-01 updated<2017-01-01",
+			Output: "type:ticket created>=2016-04-01 updated<2017-01-01",
 		},
 		{
 			SF: SearchFilter{
@@ -217,7 +217,7 @@ func TestSearchFilterBuildQuery(t *testing.T) {
 					"tags:": "beta",
 				},
 			},
-			Output: "type:ticket created>2016-04-01 updated<2017-01-01 tags:beta",
+			Output: "type:ticket created>=2016-04-01 updated<2017-01-01 tags:beta",
 		},
 		{
 			SF: SearchFilter{
@@ -237,7 +237,7 @@ func TestSearchFilterBuildQuery(t *testing.T) {
 					"status>": "pending",
 				},
 			},
-			Output: `type:user created>2016-04-01 updated<2017-01-01 status>pending tags:"beta not"`,
+			Output: `type:user created>=2016-04-01 updated<2017-01-01 status>pending tags:"beta not"`,
 		},
 		{
 			SF: SearchFilter{
@@ -255,7 +255,7 @@ func TestSearchFilterBuildQuery(t *testing.T) {
 					},
 				},
 			},
-			Output: "type:ticket created>2016-05-01 tags:expired tags:freetrial tags:test_user",
+			Output: "type:ticket created>=2016-05-01 tags:expired tags:freetrial tags:test_user",
 		},
 		{
 			SF: SearchFilter{

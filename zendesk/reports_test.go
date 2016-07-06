@@ -82,7 +82,7 @@ func TestHandleReports(t *testing.T) {
 			ExpectedTotalRequestCount: 3,
 			ZendeskRequests: []ERequest{
 				{
-					FullPath:     "/api/v2/search.json?query=type%3Aticket+created%3E2016-05-25",
+					FullPath:     "/api/v2/search.json?query=type%3Aticket+created%3E%3D2016-05-25",
 					ResponseBody: `{"results": [{"id": 1},{"id":2},{"id":3}, {"id": 4}],"count": 4, "next_page":"/api/v2/never_called"}`,
 				},
 			},

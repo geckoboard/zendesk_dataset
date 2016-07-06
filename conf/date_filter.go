@@ -137,7 +137,7 @@ func (df *DateFilter) BuildQuery(t *time.Time) string {
 	if df.Custom != "" {
 		bf.WriteString(df.Custom)
 	} else {
-		bf.WriteString(">")
+		bf.WriteString(">=")
 		bf.WriteString(df.getDateAPIFormat(t))
 	}
 

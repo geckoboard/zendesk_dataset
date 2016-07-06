@@ -216,8 +216,8 @@ func TestAddDateAPIFormat(t *testing.T) {
 
 func TestBuildQuery(t *testing.T) {
 	testCases := []map[string]string{
-		{"Input": `{"Past": 1, "Unit": "month"}`, "Output": "created>2016-05-01"},
-		{"Input": `{"Attribute": "updated", "Past": 7, "Unit": "day"}`, "Output": "updated>2016-05-25"},
+		{"Input": `{"Past": 1, "Unit": "month"}`, "Output": "created>=2016-05-01"},
+		{"Input": `{"Attribute": "updated", "Past": 7, "Unit": "day"}`, "Output": "updated>=2016-05-25"},
 		{"Input": `{"Attribute": "solved", "Custom": ">2016-02-11"}`, "Output": "solved>2016-02-11"},
 		{"Input": `{"Attribute": "due_date", "Custom": "<=2016-02-11"}`, "Output": "due_date<=2016-02-11"},
 	}
@@ -257,12 +257,12 @@ func TestDateRangeBuildQuery(t *testing.T) {
 	}
 
 	output1 := dr1.BuildQuery(&staticTime)
-	if output1 != "created>2016-04-01 updated<2017-01-01" {
+	if output1 != "created>=2016-04-01 updated<2017-01-01" {
 		t.Errorf("Built query output not matched got %s", output1)
 	}
 
 	output2 := dr2.BuildQuery(&staticTime)
-	if output2 != "created>2016-04-01" {
+	if output2 != "created>=2016-04-01" {
 		t.Errorf("Built query output not matched got %s", output2)
 	}
 }
