@@ -2,7 +2,6 @@ package conf
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -34,55 +33,11 @@ func (sf *SearchFilter) Validate() error {
 		}
 	}
 
-	if err := sf.keyValuesValid(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func (sf *SearchFilter) defaultType() {
 	sf.Type = "ticket"
-}
-
-func (sf *SearchFilter) keyValuesValid() error {
-	var bf bytes.Buffer
-
-	for k, v := range sf.Value {
-		if len(k) == 0 {
-			bf.WriteString(fmt.Sprintf(missingKey, v))
-		} else {
-			if !keyHasOperator(k) {
-				bf.WriteString(fmt.Sprintf(missingOperator, k, validOperators))
-			}
-		}
-
-		if len(v) == 0 {
-			bf.WriteString(fmt.Sprintf(missingValue, k))
-		}
-	}
-
-	for k, v := range sf.Values {
-		if len(k) == 0 {
-			bf.WriteString(fmt.Sprintf(missingKey, v))
-		} else {
-			if !keyHasOperator(k) {
-				bf.WriteString(fmt.Sprintf(missingOperator, k, validOperators))
-			}
-		}
-
-		if len(v) == 0 {
-			bf.WriteString(fmt.Sprintf(missingValues, k))
-		}
-	}
-
-	errMsg := strings.TrimRight(bf.String(), "\n")
-
-	if errMsg == "" {
-		return nil
-	}
-
-	return errors.New(errMsg)
 }
 
 func keyHasOperator(key string) bool {

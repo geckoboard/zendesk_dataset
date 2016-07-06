@@ -67,56 +67,6 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			SF: SearchFilter{
-				DateRange: []DateFilter{},
-				Value: map[string]string{
-					"status": "solved",
-				},
-			},
-			Valid:    false,
-			ErrorMsg: "The key 'status' is missing an operator as the last character choose one of [> : < >= <=]",
-		},
-		{
-			SF: SearchFilter{
-				DateRange: []DateFilter{},
-				Value: map[string]string{
-					"status>": "",
-				},
-			},
-			Valid:    false,
-			ErrorMsg: "The key 'status>' has no value to check against",
-		},
-		{
-			SF: SearchFilter{
-				DateRange: []DateFilter{},
-				Values: map[string][]string{
-					"tags:": []string{},
-				},
-			},
-			Valid:    false,
-			ErrorMsg: "The key 'tags:' has no values to check against",
-		},
-		{
-			SF: SearchFilter{
-				DateRange: []DateFilter{},
-				Value: map[string]string{
-					"": "open",
-				},
-			},
-			Valid:    false,
-			ErrorMsg: "Missing key for value 'open'",
-		},
-		{
-			SF: SearchFilter{
-				DateRange: []DateFilter{},
-				Values: map[string][]string{
-					"tags": []string{"trial_expired", "emea"},
-				},
-			},
-			Valid:    false,
-			ErrorMsg: "The key 'tags' is missing an operator as the last character choose one of [> : < >= <=]",
-		},
-		{
-			SF: SearchFilter{
 				DateRange: []DateFilter{
 					{
 						Attribute: "created",
