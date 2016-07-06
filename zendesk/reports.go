@@ -6,7 +6,7 @@ import (
 	"time"
 
 	gb "github.com/geckoboard/geckoboard-go"
-	"github.com/jnormington/geckoboard_zendesk/conf"
+	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
 const TicketCount = "ticket_counts"

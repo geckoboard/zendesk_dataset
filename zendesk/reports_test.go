@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jnormington/geckoboard_zendesk/conf"
+	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
 type ReportTestCase struct {

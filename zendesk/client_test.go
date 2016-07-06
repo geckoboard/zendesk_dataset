@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/jnormington/geckoboard_zendesk/conf"
+	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
 type TestCase struct {

@@ -4,8 +4,8 @@ import (
 	"flag"
 	"log"
 
-	"github.com/jnormington/geckoboard_zendesk/conf"
-	"github.com/jnormington/geckoboard_zendesk/zendesk"
+	"github.com/geckoboard/zendesk_dataset/conf"
+	"github.com/geckoboard/zendesk_dataset/zendesk"
 )
 
 var configPath = flag.String("config", "./geckoboard_zendesk.conf", "Path to your geckoboard zendesk configuration")
