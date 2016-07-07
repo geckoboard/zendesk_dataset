@@ -16,7 +16,7 @@ func main() {
 	config, err := conf.LoadConfig(*configPath)
 
 	if err != nil {
-		log.Fatalf("ERRO: Problem with the config: %s\n", err)
+		log.Fatalf("ERRO: Problem with the config: %s\n", err.Error())
 	}
 
 	if len(config.Zendesk.Reports) == 0 {
