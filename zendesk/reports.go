@@ -20,23 +20,23 @@ var timeNow = time.Now()
 // to the user or prints that report was successfull and continues
 // with the next report if any.
 func HandleReports(c *conf.Config) {
+	var err error
+
 	for _, r := range c.Zendesk.Reports {
-		var rptError string
 
 		switch r.Name {
 		case TicketCount:
-			if err := ticketCount(&r, c); err != nil {
-				rptError = err.Error()
-			}
+			err = ticketCount(&r, c)
 		default:
-			rptError = fmt.Sprintf("Report name %s was not found", r.Name)
+			err = fmt.Errorf("Report name %s was not found", r.Name)
 		}
 
-		if rptError == "" {
-			log.Printf("INFO: Processing report '%s' completed successfully", r.DataSet)
-		} else {
-			log.Printf("ERRO: Processing report '%s' failed with: %s", r.DataSet, rptError)
+		if err != nil {
+			log.Printf("ERRO: Processing report '%s' failed with: %s", r.DataSet, err.Error())
+			err = nil
 		}
+
+		log.Printf("INFO: Processing report '%s' completed successfully", r.DataSet)
 	}
 }
 
