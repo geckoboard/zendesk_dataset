@@ -100,6 +100,8 @@ func (c *Client) searchTickets(queryParam string, t *[]Ticket) (int, error) {
 		return 0, err
 	}
 
+	defer resp.Body.Close()
+
 	var tp TicketPayload
 	err = json.NewDecoder(resp.Body).Decode(&tp)
 	if err != nil {
