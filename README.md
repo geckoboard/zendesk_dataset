@@ -1,57 +1,45 @@
-# Zendesk Dataset
+# Zendesk Datasets
 
-Zendesk datasets has been a little side project to help more customers get the data they need from Zendesk into 
-[Geckoboard](https://www.geckoboard.com). This uses the latest [Datasets API](https://www.geckoboard.com/whats-new/9)
-which is currently in beta but has some great benefits over the older custom widgets, such as one dataset can be used
-by multiple widgets as the data isn't tied to a specific widget type.
+## Background
 
-## What this is and isn't
-This **isn't** a replacement for the current [Zendesk integration](https://www.geckoboard.com/integrations/zendesk),
-but there are many use cases for reports that are not possible with the current integration and are specific to each
-customer. 
+Zendesk datasets is a small Go application that makes use of [Geckoboard's](https://www.geckoboard.com) new [Datasets API](https://www.geckoboard.com/whats-new/9)
+(currently in Beta) to pull data from Zendesk into Geckoboard.
 
-So this is where this **will help**.
+The new Datasets API has major advantages over Geckoboard's older Custom Widgets API including the ability to power multiple widgets from one dataset and the ability to switch visualisaton without making code changes. It also now includes powerful grouping and time bucketing features.   
 
-This program utilizes the zendesk search api and attempts to wrap it up into a config file with a predefined 
-Dataset schema for that report template, so if you wanted to get a count of the number of tickets created in the last
-30 days matching some tags then it possible to do so with a few options and your api keys for both services.
+While this application **isn't** intended as a replacement for the Geckoboard's built-in [Zendesk integration](https://www.geckoboard.com/integrations/zendesk) it does make it possible to build some reports that can't currently be achieved. 
 
-It is early days and currently only supports getting ticket counts for anything that the 
-[Zendesk search api](https://developer.zendesk.com/rest_api/docs/core/search) currently supports
+Currently it supports getting ticket counts for anything permitted by the 
+[Zendesk search api](https://developer.zendesk.com/rest_api/docs/core/search), but we plan to extend the functionality soon.
 
-## Missing report that you need?
-You can either submit a pull request. Or raise [new issue](https://github.com/geckoboard/zendesk_dataset/issues/new)
+If you have any feedback we're very interested to hear it. You can either submit a pull request. Or raise [new issue](https://github.com/geckoboard/zendesk_dataset/issues/new)
 
-Please check if an existing issue is already present before submitting a new one, feel free to comment on an existing
-one based on your use case if it very similar.
 
 ## Getting Started
-As this is Go there won't be the need to install any libraries or anything to get started. 
-We have already compiled the code into a distributable binary for the main operating systems/arch select it below
+
+### 1. Download the correct Binary
+
+As this is a Go application there's no need to install any libraries to get started.
+
+Just click on the distributable binary that matches your operating systems/arch below to download it:
 
 **TODO: Compile binaries for OSX, Linux, Windows, i386, x86_64 and list here to the releases section**
 
-## Usage
+### 2. Build the configuration file
 
-We first need to build a configuration file you can start with the following [dummy template](fixtures/example.conf)
-which we will describe.
+We now need to build a configuration file for the application. The configration file is where you enter the your Geckoboard and Zendesk API keys, and how you configure what data to pull from Zendesk. To get started copy the example below and save it as a JSON file.
 
-### Authentication
-So that we can pull data from Zendesk and push data to Geckoboard we need to first get login api keys to support this
+When we run our application with configuration file it will create a Dataset in Geckoboard called `tickets.created.in.last.30.days` that pulls the number of tickets created in Zendesk in the last 30 days.
 
-##### Geckoboard 
-In the below example you only need to change the `api_key` which you can get from your account section.
-The url in this example is correct and should never change.
+#### Modifying the configuration file
 
-##### Zendesk
-We are supporting two authentication options Password and Apikey access. 
-To use email/password auth only supply `email` and `password options` if want to authenticate with an apikey.
+Before you can run the application you will need to modify the config file. 
 
-First generate one from Admin > Channels > API in Zendesk and supply only the `api_key` and `email` options.
+First you will need to edit the Geckoboard `api_key` to match the one found in the Account section of your Geckoboard account. You should not need to edit the `url`.
 
-In both cases a subdomain must be supplied.
+With Zendesk you can either authenticate with  Password or API key. To use email/password auth only supply `email` and `password` options. To authenticate with the API first generate one from Admin > Channels > API in Zendesk and then supply only the `api_key` and `email` options. **In both cases your Zendesk `subdomain` must be supplied.**
 
-```json
+```
 {
     "geckoboard": {
         "api_key": "Ap1K4y",
@@ -64,15 +52,56 @@ In both cases a subdomain must be supplied.
             "password": "test",
             "subdomain": "testing"
         },
+        "reports": [
+            {
+                "Name": "ticket_counts",
+                "dataset": "tickets.created.in.last.30.days",
+                "filter": {
+                    "date_range": [
+                        {
+                            "attribute": "created",
+                            "past": 30,
+                            "unit": "day"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
 ```
 
-### Reports (the fun part)
+### 3. Run the program
 
-So reports sit under the Zendesk key in the json configuration file. 
-Again using the example.conf this is one possible report utilizing both the status and tags, and a second report just
-specifying all tickets in the last 3 months.
+Now that we have a configuration file we're ready to run it. In the terminal ensure you are in the
+same directory as the binary and run the following:
 
-Lets go into some more detail about each option below;
+```sh
+./zendesk_datasets -config your_config_file_full_path
+```
+
+While the program is running you should see output like the following:
+
+```
+$ ERRO: Processing report 'your.report.1' failed with: Custom input requires the operator one of [< : >]
+$ INFO: Processing report 'your.report.2' completed successfully
+$ Completed processing all reports...
+```
+
+If there is an error it will output the error that occurred, otherwise will tell you all was successful.
+
+### 4. Building a widget from the Dataset
+
+Now if you go to add a widget in Geckoboard and select Datasets, in the picker you should see `tickets.created.in.last.30.days`. You can now use this to build a widget showing your Zendesk ticket count. 
+
+
+## Modifying the report (the fun part!)
+
+To modify the data pulled back from Zendesk you will need to edit the reports section of the JSON configuration file. Multiple reports can be created in the same configuration file.
+
+In the example below the first report pulls back the number of open tickets tagged `beta` and `freetrial` created in the past 14 days, grouped by Tag. The second report meanwhile just pulls back the number of tickets created in the past 3 months.
+
+Lets go into some more detail about each option below:
 
 ```json
 "reports": [
@@ -119,7 +148,7 @@ Lets go into some more detail about each option below;
 
 ##### Name
 
-The `name` is the template specified by this application at the moment we only support the report template called `ticket_counts`
+The `name` is the template specified by this application at the moment we only support the report template called `ticket_counts`. As we expand the application, more templates will become available.
 
 ```json
 "Name": "ticket_counts",
@@ -218,58 +247,3 @@ Note that group_by doesn't sit under filter key but rather the report key
 
 and in the above example it would return the counts both tags:beta and tags:freetrial seperately from eachother
 but will be combined with all the other filters specified.
-
-## Running the program
-
-Now that we have a configuration file we should be ready to run it. With the downloaded binary ensure you are in the
-same directory as the binary and run the following;
-
-```sh
-./zendesk_datasets -config your_config_file_full_path
-```
-
-While the program is running you should see output like the following as an example;
-If there is an error it will output the error that occurred, otherwise will tell you all was successful.
-
-```
-$ ERRO: Processing report 'your.report.1' failed with: Custom input requires the operator one of [< : >]
-$ INFO: Processing report 'your.report.2' completed successfully
-$ Completed processing all reports...
-```
-
-
-## Example
-The below config example will get you up and running to get your first dataset created from zendesk ticket counts created
-in the last 30 days. Try it all you need to do is replacing the geckoboard api key and your zendesk credentials.
-
-```
-{
-    "geckoboard": {
-        "api_key": "Ap1K4y",
-        "url": "https://testing.geckoboardexample.com"
-    },
-    "zendesk": {
-        "auth": {
-            "api_key": "12345",
-            "email": "test@example.com",
-            "password": "test",
-            "subdomain": "testing"
-        },
-        "reports": [
-            {
-                "Name": "ticket_counts",
-                "dataset": "tickets.created.in.last.30.days",
-                "filter": {
-                    "date_range": [
-                        {
-                            "attribute": "created",
-                            "past": 30,
-                            "unit": "day"
-                        }
-                    ]
-                }
-            }
-        ]
-    }
-}
-```
