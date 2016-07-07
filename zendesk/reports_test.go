@@ -131,7 +131,8 @@ func TestHandleReports(t *testing.T) {
 		defer gserver.Close()
 
 		//Required by the client buildRequest method that %s
-		domainURL = "%s" + zserver.URL + "/api/v2"
+		scheme = "http"
+		host = "%s" + strings.Replace(zserver.URL, "http://", "", 1)
 		timeNow = time.Date(2016, 06, 01, 0, 0, 0, 0, time.UTC)
 		tc.Config.Geckoboard.URL = gserver.URL
 

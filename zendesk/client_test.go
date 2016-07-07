@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/geckoboard/zendesk_dataset/conf"
@@ -15,6 +16,7 @@ type TestCase struct {
 	Method      string
 	Path        string
 	QueryParams string
+	FullURL     string
 	Expected    map[string]string
 }
 
@@ -28,7 +30,7 @@ func TestBuildRequest(t *testing.T) {
 			},
 			Method:      "GET",
 			Path:        searchPath,
-			QueryParams: "type:ticket created<2017-01-01",
+			QueryParams: "query=type:ticket created<2017-01-01",
 			Expected: map[string]string{
 				"Method":     "GET",
 				"FullPath":   "https://test.zendesk.com/api/v2/search.json?query=type%3Aticket+created%3C2017-01-01",
@@ -50,6 +52,22 @@ func TestBuildRequest(t *testing.T) {
 				"AuthHeader": "Basic dGVzdEBleGFtcGxlLmNvbTo5ODc2Y2Jh",
 			},
 		},
+		{
+			Config: conf.Auth{
+				Subdomain: "testdomain",
+				Email:     "test@example.com",
+				Password:  "9876cba",
+			},
+			Method:      "GET",
+			Path:        searchPath,
+			QueryParams: "",
+			FullURL:     "http://blah.example.com?query=tags%3Atest",
+			Expected: map[string]string{
+				"Method":     "GET",
+				"FullPath":   "http://blah.example.com?query=tags%3Atest",
+				"AuthHeader": "Basic dGVzdEBleGFtcGxlLmNvbTo5ODc2Y2Jh",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -58,7 +76,7 @@ func TestBuildRequest(t *testing.T) {
 			Auth: tc.Config,
 		}
 
-		req, err := client.buildRequest(tc.Method, tc.Path, tc.QueryParams)
+		req, err := client.buildRequest(tc.Method, tc.Path, tc.QueryParams, tc.FullURL)
 
 		if err != nil {
 			t.Fatal(err)
@@ -153,7 +171,8 @@ func TestSearchTickets(t *testing.T) {
 		server := buildServerWithExpectations(&tc, t)
 		defer server.Close()
 
-		domainURL = "%s" + server.URL + "/api/v2"
+		scheme = "http"
+		host = "%s" + strings.Replace(server.URL, "http://", "", 1)
 		serverURL = server.URL
 
 		clt := Client{
