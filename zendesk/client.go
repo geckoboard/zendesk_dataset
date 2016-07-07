@@ -11,6 +11,7 @@ import (
 	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
+// Client contains the zendesk auth and where the client should paginate the results
 type Client struct {
 	Auth            conf.Auth
 	PaginateResults bool
@@ -21,6 +22,7 @@ var client = &http.Client{Timeout: time.Second * 10}
 
 const searchPath = "/search.json"
 
+// NewClient is a method to quickly generate a new client with just two args
 func NewClient(auth *conf.Auth, paginateResults bool) *Client {
 	return &Client{
 		Auth:            *auth,
@@ -63,6 +65,10 @@ func (c *Client) buildRequest(method, path, queryParams string) (*http.Request, 
 	return req, nil
 }
 
+// SearchTickets takes a string of the queryparams which consists of the zendesk
+// query and returns a TicketPayload. If the Client specifies that it should
+// paginate the results then this will utilize Zendesk's next_page attribute
+// in the ticket payload until it returns at empty string.
 func (c *Client) SearchTickets(queryParams string) (*TicketPayload, error) {
 	res := TicketPayload{}
 	var tp []Ticket

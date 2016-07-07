@@ -9,10 +9,16 @@ import (
 	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
+// TicketCount is the supported report template method name
 const TicketCount = "ticket_counts"
 
 var timeNow = time.Now()
 
+// HandleReports takes a conf.Config and iterates over the Zendesk.Reports
+// calling the method based on the Report.Name attribute if any errors
+// occurs while processing a report it extracts the error and presents it
+// to the user or prints that report was successfull and continues
+// with the next report if any.
 func HandleReports(c *conf.Config) {
 	for _, r := range c.Zendesk.Reports {
 		var rptError string
