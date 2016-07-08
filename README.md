@@ -7,7 +7,7 @@ Zendesk Datasets is a small Go application that makes use of [Geckoboard's](http
 
 The new Datasets API has major advantages over Geckoboard's older Custom Widgets API including the ability to power multiple widgets from one dataset and the ability to switch visualisaton without making code changes. It also includes powerful grouping and time bucketing features.   
 
-While this application **isn't** intended as a replacement for the Geckoboard's built-in [Zendesk integration](https://www.geckoboard.com/integrations/zendesk) it does make it possible to build some widgets that the built-in one doens't offer.
+While this application **isn't** intended as a replacement for the Geckoboard's built-in [Zendesk integration](https://www.geckoboard.com/integrations/zendesk) it does make it possible to build some widgets that the built-in one doesn't offer.
 
 Zendesk Datasets currently supports getting ticket counts for anything permitted by the 
 [Zendesk search api](https://developer.zendesk.com/rest_api/docs/core/search), but we plan to extend the functionality soon.
