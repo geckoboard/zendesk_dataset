@@ -2,6 +2,7 @@ package zendesk
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -31,31 +32,33 @@ func NewClient(auth *conf.Auth, paginateResults bool) *Client {
 	}
 }
 
-func (c *Client) buildRequest(method, path, queryParams, fullURL string) (*http.Request, error) {
-	var uri string
-
-	if fullURL != "" {
-		uri = fullURL
-	} else {
-		u := url.URL{
-			Scheme: scheme,
-			Host:   fmt.Sprintf(host, c.Auth.Subdomain),
-			Path:   basePath + path,
-		}
-
-		if queryParams != "" {
-			q, err := url.ParseQuery(queryParams)
-			if err != nil {
-				return nil, err
-			}
-
-			u.RawQuery = q.Encode()
-		}
-
-		uri = u.String()
+// BuildURL takes an endpoint and unescaped query params and returns the
+// built url for zendesk, otherwise will return an error if endpoint is missing.
+func (c *Client) BuildURL(endpoint, queryParams string) (string, error) {
+	if endpoint == "" {
+		return "", errors.New("Endpoint is required to build url")
 	}
 
-	req, err := http.NewRequest(method, uri, nil)
+	u := url.URL{
+		Scheme: scheme,
+		Host:   fmt.Sprintf(host, c.Auth.Subdomain),
+		Path:   basePath + endpoint,
+	}
+
+	if queryParams != "" {
+		q, err := url.ParseQuery("query=" + queryParams)
+		if err != nil {
+			return "", err
+		}
+
+		u.RawQuery = q.Encode()
+	}
+
+	return u.String(), nil
+}
+
+func (c *Client) buildRequest(method, fullURL string) (*http.Request, error) {
+	req, err := http.NewRequest(method, fullURL, nil)
 
 	if err != nil {
 		return nil, err
@@ -78,11 +81,12 @@ func (c *Client) SearchTickets(queryParams string) (*TicketPayload, error) {
 	res := TicketPayload{}
 	var tp []Ticket
 
-	if queryParams != "" {
-		queryParams = "query=" + queryParams
+	url, err := c.BuildURL(searchPath, queryParams)
+	if err != nil {
+		return nil, err
 	}
 
-	totalCount, err := c.searchTickets(queryParams, "", &tp)
+	totalCount, err := c.searchTickets(url, &tp)
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +101,8 @@ func (c *Client) SearchTickets(queryParams string) (*TicketPayload, error) {
 	return &res, nil
 }
 
-func (c *Client) searchTickets(queryParam, fullURL string, t *[]Ticket) (int, error) {
-	req, err := c.buildRequest("GET", searchPath, queryParam, fullURL)
+func (c *Client) searchTickets(fullURL string, t *[]Ticket) (int, error) {
+	req, err := c.buildRequest("GET", fullURL)
 
 	if err != nil {
 		return 0, err
@@ -122,7 +126,7 @@ func (c *Client) searchTickets(queryParam, fullURL string, t *[]Ticket) (int, er
 	}
 
 	if c.PaginateResults && tp.NextPage != "" {
-		_, err = c.searchTickets("", tp.NextPage, t)
+		_, err = c.searchTickets(tp.NextPage, t)
 		if err != nil {
 			return 0, err
 		}
