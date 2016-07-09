@@ -73,64 +73,38 @@ func (c *Client) buildRequest(method, fullURL string) (*http.Request, error) {
 	return req, nil
 }
 
-// SearchTickets takes a string of the queryparams which consists of the zendesk
-// query and returns a TicketPayload. If the Client specifies that it should
-// paginate the results then this will utilize Zendesk's next_page attribute
-// in the ticket payload until it returns at empty string.
-func (c *Client) SearchTickets(queryParams string) (*TicketPayload, error) {
-	res := TicketPayload{}
-	var tp []Ticket
+// SearchTickets takes a url and returns a TicketPayload. If the Client
+// specifies that it should paginate the results then it will utilize
+// next_page attribute in the ticket payload until it returns at empty string.
+func (c *Client) SearchTickets(url string) (*TicketPayload, error) {
+	var t []Ticket
 
-	url, err := c.BuildURL(searchPath, queryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	totalCount, err := c.searchTickets(url, &tp)
-	if err != nil {
-		return nil, err
-	}
-
-	res.Tickets = tp
-	if c.PaginateResults {
-		res.Count = len(tp)
-	} else {
-		res.Count = totalCount
-	}
-
-	return &res, nil
-}
-
-func (c *Client) searchTickets(fullURL string, t *[]Ticket) (int, error) {
-	req, err := c.buildRequest("GET", fullURL)
-
-	if err != nil {
-		return 0, err
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return 0, err
-	}
-
-	defer resp.Body.Close()
-
-	var tp TicketPayload
-	err = json.NewDecoder(resp.Body).Decode(&tp)
-	if err != nil {
-		return 0, err
-	}
-
-	for _, tck := range tp.Tickets {
-		*t = append(*t, tck)
-	}
-
-	if c.PaginateResults && tp.NextPage != "" {
-		_, err = c.searchTickets(tp.NextPage, t)
+	for url != "" {
+		req, err := c.buildRequest("GET", url)
 		if err != nil {
-			return 0, err
+			return nil, err
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+
+		defer resp.Body.Close()
+
+		var tp TicketPayload
+		err = json.NewDecoder(resp.Body).Decode(&tp)
+		if err != nil {
+			return nil, err
+		}
+
+		if c.PaginateResults {
+			url = tp.NextPage
+			t = append(t, tp.Tickets...)
+		} else {
+			return &tp, nil
 		}
 	}
 
-	return tp.Count, nil
+	return &TicketPayload{Count: len(t), Tickets: t}, nil
 }

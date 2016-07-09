@@ -179,7 +179,12 @@ func TestSearchTickets(t *testing.T) {
 			PaginateResults: tc.PaginateResults,
 		}
 
-		tp, err := clt.SearchTickets(tc.Query)
+		url, err := clt.BuildURL(searchPath, tc.Query)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		tp, err := clt.SearchTickets(url)
 		if err != nil {
 			t.Fatal(err)
 		}

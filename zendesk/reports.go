@@ -49,6 +49,8 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 	client := NewClient(&c.Zendesk.Auth, false)
 
 	var gbData []GData
+	var url string
+	var err error
 
 	if r.GroupBy.Key != "" {
 		values := r.Filter.Values[r.GroupBy.Key]
@@ -60,8 +62,13 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 
 		for _, v := range values {
 			r.Filter.Values[r.GroupBy.Key] = []string{v}
-			tp, err := client.SearchTickets(r.Filter.BuildQuery(&timeNow))
 
+			url, err = client.BuildURL(searchPath, r.Filter.BuildQuery(&timeNow))
+			if err != nil {
+				return err
+			}
+
+			tp, err := client.SearchTickets(url)
 			if err != nil {
 				return err
 			}
@@ -70,8 +77,13 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 		}
 	} else {
 		r.GroupBy.Name = "All"
-		tp, err := client.SearchTickets(r.Filter.BuildQuery(&timeNow))
 
+		url, err = client.BuildURL(searchPath, r.Filter.BuildQuery(&timeNow))
+		if err != nil {
+			return err
+		}
+
+		tp, err := client.SearchTickets(url)
 		if err != nil {
 			return err
 		}
