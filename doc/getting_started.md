@@ -4,9 +4,9 @@
 
 As this is a Go application there's no need to install any libraries to get started.
 
-Just click on the distributable binary that matches your operating system and architecture below to download it:
+Click on the operating system below that you plan to try this on to run the program
 
-**TODO: Compile binaries for OSX, Linux, Windows, i386, x86_64 and link here to the releases section**
+[Windows 7/8/10](windows_setup.md)
 
 ## 2. Build the configuration file
 
