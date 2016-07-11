@@ -46,11 +46,9 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 		TicketCount int    `json:"ticket_count"`
 	}
 
-	client := NewClient(&c.Zendesk.Auth, false)
+	client := newClient(&c.Zendesk.Auth, false)
 
 	var gbData []GData
-	var url string
-	var err error
 
 	if r.GroupBy.Key != "" {
 		values := r.Filter.Values[r.GroupBy.Key]
@@ -63,12 +61,7 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 		for _, v := range values {
 			r.Filter.Values[r.GroupBy.Key] = []string{v}
 
-			url, err = client.BuildURL(searchPath, r.Filter.BuildQuery(&timeNow))
-			if err != nil {
-				return err
-			}
-
-			tp, err := client.SearchTickets(url)
+			tp, err := client.searchTickets(&query{Params: r.Filter.BuildQuery(&timeNow)})
 			if err != nil {
 				return err
 			}
@@ -78,12 +71,7 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 	} else {
 		r.GroupBy.Name = "All"
 
-		url, err = client.BuildURL(searchPath, r.Filter.BuildQuery(&timeNow))
-		if err != nil {
-			return err
-		}
-
-		tp, err := client.SearchTickets(url)
+		tp, err := client.searchTickets(&query{Params: r.Filter.BuildQuery(&timeNow)})
 		if err != nil {
 			return err
 		}

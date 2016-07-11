@@ -11,10 +11,14 @@ import (
 	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
-// Client contains the zendesk auth and where the client should paginate the results
-type Client struct {
+type client struct {
 	Auth            conf.Auth
 	PaginateResults bool
+}
+
+type query struct {
+	Endpoint string
+	Params   string
 }
 
 const basePath = "/api/v2"
@@ -22,31 +26,28 @@ const searchPath = "/search.json"
 
 var scheme = "https"
 var host = "%s.zendesk.com"
-var client = &http.Client{Timeout: time.Second * 10}
+var httpClt = &http.Client{Timeout: time.Second * 10}
 
-// NewClient is a method to quickly generate a new client with just two args
-func NewClient(auth *conf.Auth, paginateResults bool) *Client {
-	return &Client{
+func newClient(auth *conf.Auth, paginateResults bool) *client {
+	return &client{
 		Auth:            *auth,
 		PaginateResults: paginateResults,
 	}
 }
 
-// BuildURL takes an endpoint and unescaped query params and returns the
-// built url for zendesk, otherwise will return an error if endpoint is missing.
-func (c *Client) BuildURL(endpoint, queryParams string) (string, error) {
-	if endpoint == "" {
+func (c *client) buildURL(qy *query) (string, error) {
+	if qy.Endpoint == "" {
 		return "", errors.New("Endpoint is required to build url")
 	}
 
 	u := url.URL{
 		Scheme: scheme,
 		Host:   fmt.Sprintf(host, c.Auth.Subdomain),
-		Path:   basePath + endpoint,
+		Path:   basePath + qy.Endpoint,
 	}
 
-	if queryParams != "" {
-		q, err := url.ParseQuery("query=" + queryParams)
+	if qy.Params != "" {
+		q, err := url.ParseQuery("query=" + qy.Params)
 		if err != nil {
 			return "", err
 		}
@@ -57,7 +58,7 @@ func (c *Client) BuildURL(endpoint, queryParams string) (string, error) {
 	return u.String(), nil
 }
 
-func (c *Client) buildRequest(method, fullURL string) (*http.Request, error) {
+func (c *client) buildRequest(method, fullURL string) (*http.Request, error) {
 	req, err := http.NewRequest(method, fullURL, nil)
 
 	if err != nil {
@@ -73,11 +74,14 @@ func (c *Client) buildRequest(method, fullURL string) (*http.Request, error) {
 	return req, nil
 }
 
-// SearchTickets takes a url and returns a TicketPayload. If the Client
-// specifies that it should paginate the results then it will utilize
-// next_page attribute in the ticket payload until it returns at empty string.
-func (c *Client) SearchTickets(url string) (*TicketPayload, error) {
-	var t []Ticket
+func (c *client) searchTickets(q *query) (*ticketPayload, error) {
+	var t []ticket
+
+	q.Endpoint = searchPath
+	var url, err = c.buildURL(q)
+	if err != nil {
+		return nil, err
+	}
 
 	for url != "" {
 		req, err := c.buildRequest("GET", url)
@@ -85,14 +89,14 @@ func (c *Client) SearchTickets(url string) (*TicketPayload, error) {
 			return nil, err
 		}
 
-		resp, err := client.Do(req)
+		resp, err := httpClt.Do(req)
 		if err != nil {
 			return nil, err
 		}
 
 		defer resp.Body.Close()
 
-		var tp TicketPayload
+		var tp ticketPayload
 		err = json.NewDecoder(resp.Body).Decode(&tp)
 		if err != nil {
 			return nil, err
@@ -106,5 +110,5 @@ func (c *Client) SearchTickets(url string) (*TicketPayload, error) {
 		}
 	}
 
-	return &TicketPayload{Count: len(t), Tickets: t}, nil
+	return &ticketPayload{Count: len(t), Tickets: t}, nil
 }

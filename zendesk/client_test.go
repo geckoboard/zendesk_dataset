@@ -66,11 +66,11 @@ func TestBuildRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 
-		client := Client{
+		c := client{
 			Auth: tc.Config,
 		}
 
-		req, err := client.buildRequest(tc.Method, tc.FullURL)
+		req, err := c.buildRequest(tc.Method, tc.FullURL)
 
 		if err != nil {
 			t.Fatal(err)
@@ -98,7 +98,7 @@ type STTestCase struct {
 	RequestCount          int
 	Requests              []Request
 	ExpectedRequestCount  int
-	ExpectedTicketPayload TicketPayload
+	ExpectedTicketPayload ticketPayload
 }
 
 type Request struct {
@@ -122,9 +122,9 @@ func TestSearchTickets(t *testing.T) {
 						`{"id": 2, "tags": ["expired", "test"]}], "count": 40, "next_page": ""}`,
 				},
 			},
-			ExpectedTicketPayload: TicketPayload{
+			ExpectedTicketPayload: ticketPayload{
 				Count: 40,
-				Tickets: []Ticket{
+				Tickets: []ticket{
 					{ID: 1, Tags: []string{"beta", "test"}},
 					{ID: 2, Tags: []string{"expired", "test"}},
 				},
@@ -149,9 +149,9 @@ func TestSearchTickets(t *testing.T) {
 						`{"id": 4, "tags": ["expired", "important"]}], "count": 2 }`,
 				},
 			},
-			ExpectedTicketPayload: TicketPayload{
+			ExpectedTicketPayload: ticketPayload{
 				Count: 4,
-				Tickets: []Ticket{
+				Tickets: []ticket{
 					{ID: 1, Tags: []string{"important", "test"}},
 					{ID: 2, Tags: []string{"important", "test"}},
 					{ID: 3, Tags: []string{"beta", "important"}},
@@ -172,19 +172,14 @@ func TestSearchTickets(t *testing.T) {
 		host = "%s" + strings.Replace(server.URL, "http://", "", 1)
 		serverURL = server.URL
 
-		clt := Client{
+		clt := client{
 			Auth: conf.Auth{
 				Subdomain: "",
 			},
 			PaginateResults: tc.PaginateResults,
 		}
 
-		url, err := clt.BuildURL(searchPath, tc.Query)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		tp, err := clt.SearchTickets(url)
+		tp, err := clt.searchTickets(&query{Params: tc.Query})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -202,7 +197,7 @@ func TestSearchTickets(t *testing.T) {
 func TestBuildURL(t *testing.T) {
 	baseURL := "https://test.zendesk.com/api/v2"
 
-	c := Client{
+	c := client{
 		Auth: conf.Auth{
 			Subdomain: "test",
 		},
@@ -228,7 +223,11 @@ func TestBuildURL(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		out, err := c.BuildURL(tc.in[0], tc.in[1])
+		q := &query{
+			Endpoint: tc.in[0],
+			Params:   tc.in[1],
+		}
+		out, err := c.buildURL(q)
 
 		if tc.out != "" && tc.out != out {
 			t.Errorf("Expected output to be %s but got %s", tc.out, out)
