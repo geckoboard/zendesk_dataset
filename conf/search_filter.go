@@ -17,7 +17,7 @@ const (
 
 var validOperators = [5]string{">", ":", "<", ">=", "<="}
 
-// SearchFilter describes a filter query on Zendesk api
+// SearchFilter describes a filter query on Zendesk api.
 type SearchFilter struct {
 	Type      string              `json:"type"`
 	DateRange DateFilters         `json:"date_range"`
@@ -25,7 +25,7 @@ type SearchFilter struct {
 	Values    map[string][]string `json:"values"`
 }
 
-// Validate checks the search filter and returns an error if not
+// Validate checks the search filter and returns an error if not.
 func (sf *SearchFilter) Validate() error {
 	sf.defaultType()
 
@@ -54,7 +54,7 @@ func keyHasOperator(key string) bool {
 	return false
 }
 
-// BuildQuery builds a valid zendesk search api and returns it as a string
+// BuildQuery builds a valid zendesk search api and returns it as a string.
 func (sf *SearchFilter) BuildQuery(t *time.Time) string {
 	var bf bytes.Buffer
 
@@ -75,7 +75,7 @@ func (sf *SearchFilter) BuildQuery(t *time.Time) string {
 }
 
 func (sf *SearchFilter) buildValue(bf *bytes.Buffer) {
-	// Maps are randomized but we need them ordered at least for the tests
+	// Maps are randomized but we need them ordered at least for the tests.
 	keys := []string{}
 	for k := range sf.Value {
 		keys = append(keys, k)

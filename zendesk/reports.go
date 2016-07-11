@@ -9,7 +9,7 @@ import (
 	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
-// TicketCount is the supported report template method name
+// TicketCount is the supported report template method name.
 const TicketCount = "ticket_counts"
 
 var timeNow = time.Now()
