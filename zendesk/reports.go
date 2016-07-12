@@ -9,28 +9,34 @@ import (
 	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
+// TicketCount is the supported report template method name.
 const TicketCount = "ticket_counts"
 
 var timeNow = time.Now()
 
+// HandleReports takes a conf.Config and iterates over the Zendesk.Reports
+// calling the method based on the Report.Name attribute if any errors
+// occurs while processing a report it extracts the error and presents it
+// to the user or prints that report was successfull and continues
+// with the next report if any.
 func HandleReports(c *conf.Config) {
+	var err error
+
 	for _, r := range c.Zendesk.Reports {
-		var rptError string
 
 		switch r.Name {
 		case TicketCount:
-			if err := ticketCount(&r, c); err != nil {
-				rptError = err.Error()
-			}
+			err = ticketCount(&r, c)
 		default:
-			rptError = fmt.Sprintf("Report name %s was not found", r.Name)
+			err = fmt.Errorf("Report name %s was not found", r.Name)
 		}
 
-		if rptError == "" {
-			log.Printf("INFO: Processing report '%s' completed successfully", r.DataSet)
-		} else {
-			log.Printf("ERRO: Processing report '%s' failed with: %s", r.DataSet, rptError)
+		if err != nil {
+			log.Printf("ERRO: Processing report '%s' failed with: %s", r.DataSet, err.Error())
+			err = nil
 		}
+
+		log.Printf("INFO: Processing report '%s' completed successfully", r.DataSet)
 	}
 }
 
@@ -40,7 +46,7 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 		TicketCount int    `json:"ticket_count"`
 	}
 
-	client := NewClient(&c.Zendesk.Auth, false)
+	client := newClient(&c.Zendesk.Auth, false)
 
 	var gbData []GData
 
@@ -54,8 +60,8 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 
 		for _, v := range values {
 			r.Filter.Values[r.GroupBy.Key] = []string{v}
-			tp, err := client.SearchTickets(r.Filter.BuildQuery(&timeNow))
 
+			tp, err := client.SearchTickets(&Query{Params: r.Filter.BuildQuery(&timeNow)})
 			if err != nil {
 				return err
 			}
@@ -64,8 +70,8 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 		}
 	} else {
 		r.GroupBy.Name = "All"
-		tp, err := client.SearchTickets(r.Filter.BuildQuery(&timeNow))
 
+		tp, err := client.SearchTickets(&Query{Params: r.Filter.BuildQuery(&timeNow)})
 		if err != nil {
 			return err
 		}

@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
 type TestCase struct {
-	Config      conf.Auth
-	Method      string
-	Path        string
-	QueryParams string
-	Expected    map[string]string
+	Config   conf.Auth
+	Method   string
+	FullURL  string
+	Expected map[string]string
 }
 
 func TestBuildRequest(t *testing.T) {
@@ -26,9 +26,8 @@ func TestBuildRequest(t *testing.T) {
 				Email:     "test@example.com",
 				APIKey:    "1234abc",
 			},
-			Method:      "GET",
-			Path:        searchPath,
-			QueryParams: "type:ticket created<2017-01-01",
+			Method:  "GET",
+			FullURL: "https://test.zendesk.com/api/v2/search.json?query=type%3Aticket+created%3C2017-01-01",
 			Expected: map[string]string{
 				"Method":     "GET",
 				"FullPath":   "https://test.zendesk.com/api/v2/search.json?query=type%3Aticket+created%3C2017-01-01",
@@ -41,12 +40,25 @@ func TestBuildRequest(t *testing.T) {
 				Email:     "test@example.com",
 				Password:  "9876cba",
 			},
-			Method:      "POST",
-			Path:        searchPath,
-			QueryParams: "",
+			Method:  "POST",
+			FullURL: "https://testdomain.zendesk.com/api/v2/search.json",
 			Expected: map[string]string{
 				"Method":     "POST",
 				"FullPath":   "https://testdomain.zendesk.com/api/v2/search.json",
+				"AuthHeader": "Basic dGVzdEBleGFtcGxlLmNvbTo5ODc2Y2Jh",
+			},
+		},
+		{
+			Config: conf.Auth{
+				Subdomain: "testdomain",
+				Email:     "test@example.com",
+				Password:  "9876cba",
+			},
+			Method:  "GET",
+			FullURL: "http://blah.example.com?query=tags%3Atest",
+			Expected: map[string]string{
+				"Method":     "GET",
+				"FullPath":   "http://blah.example.com?query=tags%3Atest",
 				"AuthHeader": "Basic dGVzdEBleGFtcGxlLmNvbTo5ODc2Y2Jh",
 			},
 		},
@@ -54,11 +66,11 @@ func TestBuildRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 
-		client := Client{
+		c := Client{
 			Auth: tc.Config,
 		}
 
-		req, err := client.buildRequest(tc.Method, tc.Path, tc.QueryParams)
+		req, err := c.buildRequest(tc.Method, tc.FullURL)
 
 		if err != nil {
 			t.Fatal(err)
@@ -153,7 +165,11 @@ func TestSearchTickets(t *testing.T) {
 		server := buildServerWithExpectations(&tc, t)
 		defer server.Close()
 
-		domainURL = "%s" + server.URL + "/api/v2"
+		//Reset the scheme and host back to original so not to break other tests
+		defer func(h, s string) { host = h; scheme = s }(host, scheme)
+
+		scheme = "http"
+		host = "%s" + strings.Replace(server.URL, "http://", "", 1)
 		serverURL = server.URL
 
 		clt := Client{
@@ -163,7 +179,7 @@ func TestSearchTickets(t *testing.T) {
 			PaginateResults: tc.PaginateResults,
 		}
 
-		tp, err := clt.SearchTickets(tc.Query)
+		tp, err := clt.SearchTickets(&Query{Params: tc.Query})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -174,6 +190,55 @@ func TestSearchTickets(t *testing.T) {
 
 		if !reflect.DeepEqual(*tp, tc.ExpectedTicketPayload) {
 			t.Errorf("Expected payload %v but got %v", tc.ExpectedTicketPayload, tp)
+		}
+	}
+}
+
+func TestBuildURL(t *testing.T) {
+	baseURL := "https://test.zendesk.com/api/v2"
+
+	c := Client{
+		Auth: conf.Auth{
+			Subdomain: "test",
+		},
+	}
+
+	tests := []struct {
+		in  [2]string
+		out string
+		err string
+	}{
+		{
+			in:  [2]string{searchPath, "created>2016-01-01 tags:beta"},
+			out: baseURL + "/search.json?query=created%3E2016-01-01+tags%3Abeta",
+		},
+		{
+			in:  [2]string{"", "created>2016-01-01 tags:test"},
+			err: "Endpoint is required to build url",
+		},
+		{
+			in:  [2]string{"/ticket_metrics.json", ""},
+			out: baseURL + "/ticket_metrics.json",
+		},
+	}
+
+	for _, tc := range tests {
+		q := &Query{
+			Endpoint: tc.in[0],
+			Params:   tc.in[1],
+		}
+		out, err := c.buildURL(q)
+
+		if tc.out != "" && tc.out != out {
+			t.Errorf("Expected output to be %s but got %s", tc.out, out)
+		}
+
+		if tc.err == "" && err != nil {
+			t.Errorf("Expected no errors but got %s", err.Error())
+		}
+
+		if tc.err != "" && tc.err != err.Error() {
+			t.Errorf("Expected error %s but got %s", tc.err, err)
 		}
 	}
 }

@@ -10,6 +10,8 @@ import (
 
 type calendarUnit string
 type dateAttribute string
+
+// DateFilters is a slice of DateFilter.
 type DateFilters []DateFilter
 
 const (
@@ -31,7 +33,7 @@ var validAttributes = [4]dateAttribute{created, updated, solved, dueDate}
 var validCalendarUnits = [3]calendarUnit{day, month, year}
 var validDateOperators = [3]string{">", ":", "<"}
 
-// DateFilter represents a date filter on the zendesk search api
+// DateFilter represents a date filter on the zendesk search api.
 type DateFilter struct {
 	Attribute dateAttribute `json:"attribute"`
 	Unit      calendarUnit  `json:"unit"`
@@ -39,7 +41,7 @@ type DateFilter struct {
 	Past      int           `json:"past"`
 }
 
-// Validate returns first error it occurs
+// Validate returns first error it occurs otherwise nil based on the user options.
 func (df *DateFilter) Validate() error {
 	df.defaultAttribute()
 
@@ -121,6 +123,10 @@ func (df *DateFilter) getDateAPIFormat(t *time.Time) string {
 	return t.Format(apiDateFormat)
 }
 
+// BuildQuery takes a time instance and builds the date query calling
+// getDateAPIFormat to return api formatted date based on the unit and past
+// values otherwise it builds on the user custom input with attribute
+// and returns it as a string.
 func (df *DateFilter) BuildQuery(t *time.Time) string {
 	var bf bytes.Buffer
 
@@ -144,6 +150,8 @@ func (df *DateFilter) BuildQuery(t *time.Time) string {
 	return bf.String()
 }
 
+// BuildQuery for the DateFilters type which calls the
+// DateFilter BuildQuery method and returns all concatenated.
 func (df DateFilters) BuildQuery(t *time.Time) string {
 	var bf bytes.Buffer
 
