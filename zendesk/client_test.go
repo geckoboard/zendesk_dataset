@@ -66,7 +66,7 @@ func TestBuildRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 
-		c := client{
+		c := Client{
 			Auth: tc.Config,
 		}
 
@@ -98,7 +98,7 @@ type STTestCase struct {
 	RequestCount          int
 	Requests              []Request
 	ExpectedRequestCount  int
-	ExpectedTicketPayload ticketPayload
+	ExpectedTicketPayload TicketPayload
 }
 
 type Request struct {
@@ -122,9 +122,9 @@ func TestSearchTickets(t *testing.T) {
 						`{"id": 2, "tags": ["expired", "test"]}], "count": 40, "next_page": ""}`,
 				},
 			},
-			ExpectedTicketPayload: ticketPayload{
+			ExpectedTicketPayload: TicketPayload{
 				Count: 40,
-				Tickets: []ticket{
+				Tickets: []Ticket{
 					{ID: 1, Tags: []string{"beta", "test"}},
 					{ID: 2, Tags: []string{"expired", "test"}},
 				},
@@ -149,9 +149,9 @@ func TestSearchTickets(t *testing.T) {
 						`{"id": 4, "tags": ["expired", "important"]}], "count": 2 }`,
 				},
 			},
-			ExpectedTicketPayload: ticketPayload{
+			ExpectedTicketPayload: TicketPayload{
 				Count: 4,
-				Tickets: []ticket{
+				Tickets: []Ticket{
 					{ID: 1, Tags: []string{"important", "test"}},
 					{ID: 2, Tags: []string{"important", "test"}},
 					{ID: 3, Tags: []string{"beta", "important"}},
@@ -172,14 +172,14 @@ func TestSearchTickets(t *testing.T) {
 		host = "%s" + strings.Replace(server.URL, "http://", "", 1)
 		serverURL = server.URL
 
-		clt := client{
+		clt := Client{
 			Auth: conf.Auth{
 				Subdomain: "",
 			},
 			PaginateResults: tc.PaginateResults,
 		}
 
-		tp, err := clt.searchTickets(&query{Params: tc.Query})
+		tp, err := clt.SearchTickets(&Query{Params: tc.Query})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -197,7 +197,7 @@ func TestSearchTickets(t *testing.T) {
 func TestBuildURL(t *testing.T) {
 	baseURL := "https://test.zendesk.com/api/v2"
 
-	c := client{
+	c := Client{
 		Auth: conf.Auth{
 			Subdomain: "test",
 		},
@@ -223,7 +223,7 @@ func TestBuildURL(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		q := &query{
+		q := &Query{
 			Endpoint: tc.in[0],
 			Params:   tc.in[1],
 		}

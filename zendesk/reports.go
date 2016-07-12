@@ -61,7 +61,7 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 		for _, v := range values {
 			r.Filter.Values[r.GroupBy.Key] = []string{v}
 
-			tp, err := client.searchTickets(&query{Params: r.Filter.BuildQuery(&timeNow)})
+			tp, err := client.SearchTickets(&Query{Params: r.Filter.BuildQuery(&timeNow)})
 			if err != nil {
 				return err
 			}
@@ -71,7 +71,7 @@ func ticketCount(r *conf.Report, c *conf.Config) error {
 	} else {
 		r.GroupBy.Name = "All"
 
-		tp, err := client.searchTickets(&query{Params: r.Filter.BuildQuery(&timeNow)})
+		tp, err := client.SearchTickets(&Query{Params: r.Filter.BuildQuery(&timeNow)})
 		if err != nil {
 			return err
 		}

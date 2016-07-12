@@ -11,12 +11,14 @@ import (
 	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
-type client struct {
+// Client holds the Zendesk auth and whether the client should paginate.
+type Client struct {
 	Auth            conf.Auth
 	PaginateResults bool
 }
 
-type query struct {
+// Query holds the params and endpoint for which the buildURL method uses.
+type Query struct {
 	Endpoint string
 	Params   string
 }
@@ -28,14 +30,14 @@ var scheme = "https"
 var host = "%s.zendesk.com"
 var httpClt = &http.Client{Timeout: time.Second * 10}
 
-func newClient(auth *conf.Auth, paginateResults bool) *client {
-	return &client{
+func newClient(auth *conf.Auth, paginateResults bool) *Client {
+	return &Client{
 		Auth:            *auth,
 		PaginateResults: paginateResults,
 	}
 }
 
-func (c *client) buildURL(qy *query) (string, error) {
+func (c *Client) buildURL(qy *Query) (string, error) {
 	if qy.Endpoint == "" {
 		return "", errors.New("Endpoint is required to build url")
 	}
@@ -58,7 +60,7 @@ func (c *client) buildURL(qy *query) (string, error) {
 	return u.String(), nil
 }
 
-func (c *client) buildRequest(method, fullURL string) (*http.Request, error) {
+func (c *Client) buildRequest(method, fullURL string) (*http.Request, error) {
 	req, err := http.NewRequest(method, fullURL, nil)
 
 	if err != nil {
@@ -74,8 +76,12 @@ func (c *client) buildRequest(method, fullURL string) (*http.Request, error) {
 	return req, nil
 }
 
-func (c *client) searchTickets(q *query) (*ticketPayload, error) {
-	var t []ticket
+// SearchTickets takes a query object and returns a TicketPayload. If the Client
+// specifies that it should paginate the results then it will utilize
+// next_page attribute in the ticket payload until it returns at empty string with all the tickets.
+// When not paginated it will return only the TicketPayload with the count
+func (c *Client) SearchTickets(q *Query) (*TicketPayload, error) {
+	var t []Ticket
 
 	q.Endpoint = searchPath
 	var url, err = c.buildURL(q)
@@ -96,7 +102,7 @@ func (c *client) searchTickets(q *query) (*ticketPayload, error) {
 
 		defer resp.Body.Close()
 
-		var tp ticketPayload
+		var tp TicketPayload
 		err = json.NewDecoder(resp.Body).Decode(&tp)
 		if err != nil {
 			return nil, err
@@ -110,5 +116,5 @@ func (c *client) searchTickets(q *query) (*ticketPayload, error) {
 		}
 	}
 
-	return &ticketPayload{Count: len(t), Tickets: t}, nil
+	return &TicketPayload{Count: len(t), Tickets: t}, nil
 }
