@@ -81,3 +81,25 @@ func TestGroupingsValid(t *testing.T) {
 		}
 	}
 }
+
+func TestDisplayName(t *testing.T) {
+	testCases := []struct {
+		mg  MetricGroup
+		out string
+	}{
+		{mg: MetricGroup{Unit: hour, From: 0, To: 1}, out: "0-1 hour"},
+		{mg: MetricGroup{Unit: hour, From: 1, To: 2}, out: "1-2 hours"},
+		{mg: MetricGroup{Unit: hour, From: 1, To: 5}, out: "1-5 hours"},
+		{mg: MetricGroup{Unit: minute, From: 0, To: 1}, out: "0-1 minute"},
+		{mg: MetricGroup{Unit: minute, From: 0, To: 2}, out: "0-2 minutes"},
+		{mg: MetricGroup{Unit: minute, From: 60, To: 120}, out: "60-120 minutes"},
+	}
+
+	for i, tc := range testCases {
+		out := tc.mg.DisplayName()
+
+		if tc.out != out {
+			t.Errorf("[spec %d] Expected output %s but got %s", i, tc.out, out)
+		}
+	}
+}

@@ -158,3 +158,16 @@ func (m MetricGroup) valid() error {
 
 	return nil
 }
+
+// DisplayName returns a string representation of the group name
+// and alters the unit into plural version when the To value is
+// greater than 1.
+func (m MetricGroup) DisplayName() string {
+	unit := string(m.Unit)
+
+	if m.To > 1 {
+		unit = fmt.Sprintf("%ss", m.Unit)
+	}
+
+	return fmt.Sprintf("%d-%d %s", m.From, m.To, unit)
+}
