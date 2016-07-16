@@ -44,9 +44,9 @@ var (
 
 	validMetricUnits = [2]MetricSubMetric{BusinessMetric, CalendarMetric}
 
-	errEmptyMetricOptions = fmt.Errorf("The metric options must be present to be valid for a metric report")
 	errInvalidAttribute   = fmt.Errorf("The metric attribute is not valid must be one of %s", validMetricAttributes)
 	errInvalidUnit        = fmt.Errorf("The metric unit is not valid must be one of %s", validMetricUnits)
+	errEmptyMetricOptions = errors.New("The metric options must be present to be valid for a metric report")
 	errEmptyGrouping      = errors.New("The metric grouping is required when using detailed_metric report")
 	errInvalidGroupUnit   = errors.New("The metric group unit is invalid must be one of [minute hour]")
 	errFromGreaterThanTo  = errors.New("The metric group 'from' value must not be greater than the 'to' value")
@@ -55,9 +55,9 @@ var (
 
 // MetricOption describes the options for metric reports
 type MetricOption struct {
-	Attribute MetricAttribute
-	Unit      MetricSubMetric
-	Grouping  []MetricGroup
+	Attribute MetricAttribute `json:"attribute"`
+	Unit      MetricSubMetric `json:"unit"`
+	Grouping  []MetricGroup   `json:"grouping"`
 }
 
 // MetricGroup describes how to group ticket metrics. For instance to group

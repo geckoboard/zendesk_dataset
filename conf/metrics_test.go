@@ -22,7 +22,6 @@ func TestGetUnitInMinutes(t *testing.T) {
 			t.Errorf("Expected %d minutes but got %d", tc.out, out)
 		}
 	}
-
 }
 
 func TestValid(t *testing.T) {

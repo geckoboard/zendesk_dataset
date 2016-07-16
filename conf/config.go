@@ -38,7 +38,7 @@ type Report struct {
 	DataSet       string       `json:"dataset"`
 	GroupBy       GroupBy      `json:"group_by"`
 	Filter        SearchFilter `json:"filter"`
-	MetricOptions MetricOption `json:metric_options`
+	MetricOptions MetricOption `json:"metric_options"`
 }
 
 // GroupBy describes how a report should be grouped.
