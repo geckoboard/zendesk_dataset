@@ -122,6 +122,129 @@ func TestHandleReports(t *testing.T) {
 				},
 			},
 		},
+		{
+			ExpectedTotalRequestCount: 4,
+			ZendeskRequests: []ERequest{
+				{
+					FullPath:     "/api/v2/search.json?query=type%3Aticket+created%3E%3D2016-05-29",
+					ResponseBody: `{"results":[ {"id": 1},{"id": 2},{"id": 3},{"id": 4}]}`,
+				},
+				{
+					FullPath: "/api/v2/tickets/show_many.json?ids=1%2C2%2C3%2C4&include=metric_sets",
+					ResponseBody: `{"tickets":[
+					{"created_at": "2016-06-29T19:59:14Z", "metric_set": {"reply_time_in_minutes": {"calendar": 70, "business": 59}}},
+					{"created_at": "2016-06-29T19:59:14Z", "metric_set": {"reply_time_in_minutes": {"calendar": 120, "business": 60}}},
+					{"created_at": "2016-07-30T19:59:14Z", "metric_set": {"reply_time_in_minutes": {"calendar": 181, "business": 121}}},
+					{"created_at": "2016-07-30T19:59:14Z", "metric_set": {"reply_time_in_minutes": {"calendar": 185, "business": 480}}}
+					] }`,
+				},
+			},
+			GeckoboardRequests: []ERequest{
+				{
+					FullPath: "/datasets/ticket_metrics_in_last_3days",
+					RequestBody: `{"id":"ticket_metrics_in_last_3days","fields":{"count":{"name":"Count","type":"number"},` +
+						`"grouping":{"name":"Grouping","type":"string"}},"created_at":"0001-01-01T00:00:00Z",` +
+						`"updated_at":"0001-01-01T00:00:00Z"}`,
+					ResponseBody: "{}\n",
+				},
+				{
+					FullPath:     "/datasets/ticket_metrics_in_last_3days/data",
+					RequestBody:  `{"data":[{"grouping":"0-1 hour","count":1},{"grouping":"1-8 hours","count":2}]}`,
+					ResponseBody: "{}\n",
+				},
+			},
+			Config: conf.Config{
+				Geckoboard: conf.Geckoboard{
+					URL: "",
+				},
+				Zendesk: conf.Zendesk{
+					Reports: []conf.Report{
+						{
+							Name:    "detailed_metrics",
+							DataSet: "ticket_metrics_in_last_3days",
+							Filter: conf.SearchFilter{
+								DateRange: conf.DateFilters{
+									{
+										Unit: "day",
+										Past: 3,
+									},
+								},
+							},
+							MetricOptions: conf.MetricOption{
+								Attribute: conf.ReplyTime,
+								Unit:      conf.BusinessMetric,
+								Grouping: []conf.MetricGroup{
+									{Unit: "hour", From: 0, To: 1},
+									{Unit: "hour", From: 1, To: 8},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			ExpectedTotalRequestCount: 4,
+			ZendeskRequests: []ERequest{
+				{
+					FullPath:     "/api/v2/search.json?query=type%3Aticket+created%3E%3D2016-05-29",
+					ResponseBody: `{"results":[ {"id": 1},{"id": 2},{"id": 3},{"id": 4}]}`,
+				},
+				{
+					FullPath: "/api/v2/tickets/show_many.json?ids=1%2C2%2C3%2C4&include=metric_sets",
+					ResponseBody: `{"tickets":[
+					{"created_at": "2016-06-29T19:59:14Z", "metric_set": {"first_resolution_time_in_minutes": {"calendar": 70, "business": 59}}},
+					{"created_at": "2016-06-29T19:59:14Z", "metric_set": {"first_resolution_time_in_minutes": {"calendar": 120, "business": 60}}},
+					{"created_at": "2016-07-30T19:59:14Z", "metric_set": {"first_resolution_time_in_minutes": {"calendar": 181, "business": 121}}},
+					{"created_at": "2016-07-30T19:59:14Z", "metric_set": {"first_resolution_time_in_minutes": {"calendar": 480, "business": 480}}}
+					] }`,
+				},
+			},
+			GeckoboardRequests: []ERequest{
+				{
+					FullPath: "/datasets/ticket_metrics_in_last_3days",
+					RequestBody: `{"id":"ticket_metrics_in_last_3days","fields":{"count":{"name":"Count","type":"number"},` +
+						`"grouping":{"name":"Grouping","type":"string"}},"created_at":"0001-01-01T00:00:00Z",` +
+						`"updated_at":"0001-01-01T00:00:00Z"}`,
+					ResponseBody: "{}\n",
+				},
+				{
+					FullPath:     "/datasets/ticket_metrics_in_last_3days/data",
+					RequestBody:  `{"data":[{"grouping":"0-1 hour","count":0},{"grouping":"60-480 minutes","count":3},{"grouping":"480-800 minutes","count":1}]}`,
+					ResponseBody: "{}\n",
+				},
+			},
+			Config: conf.Config{
+				Geckoboard: conf.Geckoboard{
+					URL: "",
+				},
+				Zendesk: conf.Zendesk{
+					Reports: []conf.Report{
+						{
+							Name:    "detailed_metrics",
+							DataSet: "ticket_metrics_in_last_3days",
+							Filter: conf.SearchFilter{
+								DateRange: conf.DateFilters{
+									{
+										Unit: "day",
+										Past: 3,
+									},
+								},
+							},
+							MetricOptions: conf.MetricOption{
+								Attribute: conf.FirstResolutionTime,
+								Unit:      conf.CalendarMetric,
+								Grouping: []conf.MetricGroup{
+									{Unit: "hour", From: 0, To: 1},
+									{Unit: "minute", From: 60, To: 480},
+									{Unit: "minute", From: 480, To: 800},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -165,7 +288,6 @@ func buildZendeskServerWithExpectations(s *ReportTestCase, t *testing.T) *httpte
 
 func buildGeckoboardServerWithExpectations(s *ReportTestCase, t *testing.T) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		b, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			t.Fatal(err)
