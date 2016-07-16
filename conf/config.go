@@ -34,10 +34,11 @@ type Zendesk struct {
 
 // Report describes the template to use and the filters to build for the Zendesk request.
 type Report struct {
-	Name    string       `json:"name"`
-	DataSet string       `json:"dataset"`
-	GroupBy GroupBy      `json:"group_by"`
-	Filter  SearchFilter `json:"filter"`
+	Name          string       `json:"name"`
+	DataSet       string       `json:"dataset"`
+	GroupBy       GroupBy      `json:"group_by"`
+	Filter        SearchFilter `json:"filter"`
+	MetricOptions MetricOption `json:metric_options`
 }
 
 // GroupBy describes how a report should be grouped.
