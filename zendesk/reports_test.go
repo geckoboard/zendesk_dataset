@@ -245,6 +245,51 @@ func TestHandleReports(t *testing.T) {
 				},
 			},
 		},
+		{
+			ExpectedTotalRequestCount: 3,
+			ZendeskRequests: []ERequest{
+				{
+					FullPath: "/api/v2/search.json?query=type%3Aticket+created%3E%3D2016-05-01",
+					ResponseBody: `{"results": [{"created_at": "2016-06-29T19:59:14Z"},{"created_at": "2016-06-29T19:59:14Z"},{"created_at": "2016-06-30T19:59:14Z"},
+					{"created_at": "2016-07-01T19:59:14Z"},{"created_at": "2016-07-01T19:59:14Z"},{"created_at": "2016-07-01T19:59:14Z"},
+					{"created_at": "2016-07-01T19:59:14Z"},{"created_at": "2016-07-05T19:59:14Z"},{"created_at": "2016-07-04T19:59:14Z"}]}`,
+				},
+			},
+			GeckoboardRequests: []ERequest{
+				{
+					FullPath: "/datasets/tickets.last.month.by.day",
+					RequestBody: `{"id":"tickets.last.month.by.day","fields":{"count":{"name":"Ticket Count","type":"number"},"date":{"name":"Date","type":"date"}},` +
+						`"created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z"}`,
+					ResponseBody: "{}\n",
+				},
+				{
+					FullPath:     "/datasets/tickets.last.month.by.day/data",
+					RequestBody:  `{"data":[{"date":"2016-06-29","count":2},{"date":"2016-06-30","count":1},{"date":"2016-07-01","count":4},{"date":"2016-07-05","count":1},{"date":"2016-07-04","count":1}]}`,
+					ResponseBody: "{}\n",
+				},
+			},
+			Config: conf.Config{
+				Geckoboard: conf.Geckoboard{
+					URL: "",
+				},
+				Zendesk: conf.Zendesk{
+					Reports: []conf.Report{
+						{
+							Name:    "ticket_counts_by_day",
+							DataSet: "tickets.last.month.by.day",
+							Filter: conf.SearchFilter{
+								DateRange: conf.DateFilters{
+									{
+										Unit: "month",
+										Past: 1,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

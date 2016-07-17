@@ -11,8 +11,11 @@ import (
 
 // TicketCount is the supported report template method name.
 const (
-	TicketCountsReport    = "ticket_counts"
-	DetailedMetricsReport = "detailed_metrics"
+	TicketCountsReport      = "ticket_counts"
+	TicketCountsByDayReport = "ticket_counts_by_day"
+	DetailedMetricsReport   = "detailed_metrics"
+
+	dateFormat = "2006-01-02"
 )
 
 var timeNow = time.Now()
@@ -32,6 +35,8 @@ func HandleReports(c *conf.Config) {
 			err = ticketCount(&r, c)
 		case DetailedMetricsReport:
 			err = detailedMetrics(&r, c)
+		case TicketCountsByDayReport:
+			err = ticketCountsByDay(&r, c)
 		default:
 			err = fmt.Errorf("Report name %s was not found", r.Name)
 		}
@@ -146,6 +151,52 @@ func detailedMetrics(r *conf.Report, c *conf.Config) error {
 		Fields: gb.Fields{
 			"grouping": gb.Field{Type: gb.StringFieldType, Name: "Grouping"},
 			"count":    gb.Field{Type: gb.NumberFieldType, Name: "Count"},
+		},
+	}
+
+	return pushToGeckoboard(&c.Geckoboard, &schema, gbData)
+}
+
+func ticketCountsByDay(r *conf.Report, c *conf.Config) error {
+
+	type DateData struct {
+		Date  string `json:"date"`
+		Count int    `json:"count"`
+	}
+
+	client := newClient(&c.Zendesk.Auth, true)
+
+	var gbData []DateData
+
+	tp, err := client.SearchTickets(&Query{Params: r.Filter.BuildQuery(&timeNow)})
+	if err != nil {
+		return err
+	}
+
+	var found bool
+	for _, t := range tp.Tickets {
+		td := t.CreatedAt.Format(dateFormat)
+
+		for i, dc := range gbData {
+			if td == dc.Date {
+				gbData[i].Count++
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			gbData = append(gbData, DateData{Date: td, Count: 1})
+		}
+
+		found = false
+	}
+
+	schema := gb.DataSet{
+		ID: r.DataSet,
+		Fields: gb.Fields{
+			"date":  gb.Field{Type: gb.DateFieldType, Name: "Date"},
+			"count": gb.Field{Type: gb.NumberFieldType, Name: "Ticket Count"},
 		},
 	}
 
