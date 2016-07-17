@@ -19,10 +19,10 @@ var validOperators = [5]string{">", ":", "<", ">=", "<="}
 
 // SearchFilter describes a filter query on Zendesk api.
 type SearchFilter struct {
-	Type      string              `json:"type"`
-	DateRange DateFilters         `json:"date_range"`
-	Value     map[string]string   `json:"value"`
-	Values    map[string][]string `json:"values"`
+	Type      string              `yaml:"type"`
+	DateRange DateFilters         `yaml:"date_range"`
+	Value     map[string]string   `yaml:"value"`
+	Values    map[string][]string `yaml:"values"`
 }
 
 // Validate checks the search filter and returns an error if not.

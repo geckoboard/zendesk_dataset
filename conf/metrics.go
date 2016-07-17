@@ -55,17 +55,17 @@ var (
 
 // MetricOption describes the options for metric reports
 type MetricOption struct {
-	Attribute MetricAttribute `json:"attribute"`
-	Unit      MetricSubMetric `json:"unit"`
-	Grouping  []MetricGroup   `json:"grouping"`
+	Attribute MetricAttribute `yaml:"attribute"`
+	Unit      MetricSubMetric `yaml:"unit"`
+	Grouping  []MetricGroup   `yaml:"grouping"`
 }
 
 // MetricGroup describes how to group ticket metrics. For instance to group
 // ticket metrics by 0-1 hours you would specify TimeGroup{Unit: hour, From: 0, To: 1}.
 type MetricGroup struct {
-	Unit calendarUnit `json:"unit"`
-	From int          `json:"from"`
-	To   int          `json:"to"`
+	Unit calendarUnit `yaml:"unit"`
+	From int          `yaml:"from"`
+	To   int          `yaml:"to"`
 }
 
 // FromInMinutes returns from converted into minutes based on the unit
