@@ -50,6 +50,27 @@ func TestConfigLoadFromFile(t *testing.T) {
 						},
 					},
 				},
+				{
+					Name:    "report_2",
+					DataSet: "dataset2",
+					Filter: SearchFilter{
+						DateRange: []DateFilter{
+							{
+								Attribute: created,
+								Unit:      day,
+								Past:      14,
+							},
+						},
+					},
+					MetricOptions: MetricOption{
+						Attribute: ReplyTime,
+						Unit:      BusinessMetric,
+						Grouping: []MetricGroup{
+							{Unit: minute, From: 0, To: 1},
+							{Unit: minute, From: 1, To: 8},
+						},
+					},
+				},
 			},
 		},
 	}

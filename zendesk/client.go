@@ -1,15 +1,19 @@
 package zendesk
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/geckoboard/zendesk_dataset/conf"
 )
+
+var splitTicketCount = 98
 
 // Client holds the Zendesk auth and whether the client should paginate.
 type Client struct {
@@ -19,16 +23,22 @@ type Client struct {
 
 // Query holds the params and endpoint for which the buildURL method uses.
 type Query struct {
-	Endpoint string
-	Params   string
+	Endpoint    string
+	Params      string
+	ExtraParams map[string]string
 }
 
-const basePath = "/api/v2"
-const searchPath = "/search.json"
+const (
+	basePath    = "/api/v2"
+	searchPath  = "/search.json"
+	ticketsPath = "/tickets/show_many.json"
+)
 
-var scheme = "https"
-var host = "%s.zendesk.com"
-var httpClt = &http.Client{Timeout: time.Second * 10}
+var (
+	scheme  = "https"
+	host    = "%s.zendesk.com"
+	httpClt = &http.Client{Timeout: time.Second * 10}
+)
 
 func newClient(auth *conf.Auth, paginateResults bool) *Client {
 	return &Client{
@@ -48,14 +58,23 @@ func (c *Client) buildURL(qy *Query) (string, error) {
 		Path:   basePath + qy.Endpoint,
 	}
 
+	q := url.Values{}
+	var err error
 	if qy.Params != "" {
-		q, err := url.ParseQuery("query=" + qy.Params)
+		q, err = url.ParseQuery("query=" + qy.Params)
 		if err != nil {
 			return "", err
 		}
-
-		u.RawQuery = q.Encode()
 	}
+
+	// Add any addtional params that don't require query=.
+	if len(qy.ExtraParams) > 0 {
+		for k, v := range qy.ExtraParams {
+			q.Add(k, v)
+		}
+	}
+
+	u.RawQuery = q.Encode()
 
 	return u.String(), nil
 }
@@ -117,4 +136,67 @@ func (c *Client) SearchTickets(q *Query) (*TicketPayload, error) {
 	}
 
 	return &TicketPayload{Count: len(t), Tickets: t}, nil
+}
+
+// TicketMetrics takes a query and returns TicketMetrics or an error if it
+// occurs. The ticket metrics utilises two endpoints first it uses SearchTickets
+// to get all the ticket IDs and then makes a request on the tickets/show_many.json
+// sideloading the metric sets. This allows greater flexibility on the filters
+// possible to get the metrics you require specifically based on a SearchFilter
+func (c *Client) TicketMetrics(q *Query) (*TicketMetrics, error) {
+	//Use search API to filter tickets
+	tp, err := c.SearchTickets(q)
+	if err != nil {
+		return nil, err
+	}
+
+	//Extract all the ticket ids
+	var bf bytes.Buffer
+	var tickets []Ticket
+
+	for i, t := range tp.Tickets {
+		bf.WriteString(strconv.Itoa(t.ID))
+
+		if (i != 0 && i%splitTicketCount == 0) || i == len(tp.Tickets)-1 {
+			qy := &Query{
+				Endpoint: ticketsPath,
+				ExtraParams: map[string]string{
+					"include": "metric_sets",
+					"ids":     bf.String(),
+				},
+			}
+
+			url, err := c.buildURL(qy)
+
+			if err != nil {
+				return nil, err
+			}
+
+			req, err := c.buildRequest("GET", url)
+			if err != nil {
+				return nil, err
+			}
+
+			resp, err := httpClt.Do(req)
+			if err != nil {
+				return nil, err
+			}
+
+			defer resp.Body.Close()
+
+			var tm TicketMetrics
+			err = json.NewDecoder(resp.Body).Decode(&tm)
+
+			if err != nil {
+				return nil, err
+			}
+
+			tickets = append(tickets, tm.Tickets...)
+			bf.Reset()
+		} else {
+			bf.WriteString(",")
+		}
+	}
+
+	return &TicketMetrics{Count: len(tickets), Tickets: tickets}, nil
 }

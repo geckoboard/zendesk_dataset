@@ -99,6 +99,7 @@ type STTestCase struct {
 	Requests              []Request
 	ExpectedRequestCount  int
 	ExpectedTicketPayload TicketPayload
+	ExpectedTicketMetrics TicketMetrics
 }
 
 type Request struct {
@@ -194,6 +195,96 @@ func TestSearchTickets(t *testing.T) {
 	}
 }
 
+func TestTicketMetrics(t *testing.T) {
+	splitTicketCount = 8
+	testCases := []STTestCase{
+		{
+			Query:                "type:ticket",
+			PaginateResults:      true,
+			ExpectedRequestCount: 4,
+			Requests: []Request{
+				{
+					ReplaceBodyWithServer: true,
+					FullPath:              "/api/v2/search.json?query=type%3Aticket",
+					ResponseBody: `{"results": [{"id": 1, "tags": ["important", "test"]},` +
+						`{"id": 2, "tags": ["important", "test"]}], "count": 2, "next_page": "%s/api/v2/search.json?page=2" }`,
+				},
+				{
+					FullPath: "/api/v2/search.json?page=2",
+					ResponseBody: `{"results": [{"id": 3, "tags": ["beta", "important"]},
+						{"id": 4, "tags": ["expired", "important"]},{"id":5},{"id":6},{"id":7},
+						{"id":8},{"id":9},{"id":10},{"id":11},{"id":12},{"id":13},{"id":14}], "count": 20}`,
+				},
+				{
+					ReplaceBodyWithServer: true,
+					FullPath:              "/api/v2/tickets/show_many.json?ids=1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9&include=metric_sets",
+					ResponseBody: `{"tickets":[{"metric_set": {"reply_time_in_minutes": {"calendar": 123},
+									"full_resolution_time_in_minutes": {"business": 120, "calendar": 100}}}]}`,
+				},
+				{
+					FullPath:     "/api/v2/tickets/show_many.json?ids=10%2C11%2C12%2C13%2C14&include=metric_sets",
+					ResponseBody: `{"tickets":[{"metric_set": {"reply_time_in_minutes": {"calendar": 103}}}]}`,
+				},
+			},
+			ExpectedTicketMetrics: TicketMetrics{
+				Count: 2,
+				Tickets: []Ticket{
+					{
+						Metrics: MetricSet{
+							ReplyTime: SubTimeMetric{
+								Calendar: 123,
+							},
+							FullResolutionTime: SubTimeMetric{
+								Business: 120,
+								Calendar: 100,
+							},
+						},
+					},
+					{
+						Metrics: MetricSet{
+							ReplyTime: SubTimeMetric{
+								Calendar: 103,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		server := buildServerWithExpectations(&tc, t)
+		defer server.Close()
+
+		//Reset the scheme and host back to original so not to break other tests
+		defer func(h, s string) { host = h; scheme = s }(host, scheme)
+
+		scheme = "http"
+		host = "%s" + strings.Replace(server.URL, "http://", "", 1)
+		serverURL = server.URL
+
+		clt := Client{
+			Auth: conf.Auth{
+				Subdomain: "",
+			},
+			PaginateResults: tc.PaginateResults,
+		}
+
+		tp, err := clt.TicketMetrics(&Query{Params: tc.Query})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if tc.RequestCount != tc.ExpectedRequestCount {
+			t.Errorf("Expected %d requests but got %d", tc.ExpectedRequestCount, tc.RequestCount)
+		}
+
+		if !reflect.DeepEqual(*tp, tc.ExpectedTicketMetrics) {
+			t.Errorf("Expected payload %#v but got %#v", tc.ExpectedTicketMetrics, tp)
+		}
+	}
+}
+
 func TestBuildURL(t *testing.T) {
 	baseURL := "https://test.zendesk.com/api/v2"
 
@@ -204,9 +295,10 @@ func TestBuildURL(t *testing.T) {
 	}
 
 	tests := []struct {
-		in  [2]string
-		out string
-		err string
+		in          [2]string
+		extraParams map[string]string
+		out         string
+		err         string
 	}{
 		{
 			in:  [2]string{searchPath, "created>2016-01-01 tags:beta"},
@@ -220,12 +312,18 @@ func TestBuildURL(t *testing.T) {
 			in:  [2]string{"/ticket_metrics.json", ""},
 			out: baseURL + "/ticket_metrics.json",
 		},
+		{
+			in:          [2]string{"/tickets/show_many.json", ""},
+			extraParams: map[string]string{"include": "metric_sets", "sort_by": "created_at"},
+			out:         baseURL + "/tickets/show_many.json?include=metric_sets&sort_by=created_at",
+		},
 	}
 
 	for _, tc := range tests {
 		q := &Query{
-			Endpoint: tc.in[0],
-			Params:   tc.in[1],
+			Endpoint:    tc.in[0],
+			Params:      tc.in[1],
+			ExtraParams: tc.extraParams,
 		}
 		out, err := c.buildURL(q)
 
@@ -245,10 +343,10 @@ func TestBuildURL(t *testing.T) {
 
 func buildServerWithExpectations(s *STTestCase, t *testing.T) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.RequestCount++
 
 		for _, e := range s.Requests {
 			if r.URL.String() == e.FullPath {
+				s.RequestCount++
 				if e.ReplaceBodyWithServer {
 					fmt.Fprintf(w, e.ResponseBody, serverURL)
 				} else {
