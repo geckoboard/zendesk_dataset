@@ -196,6 +196,7 @@ func TestSearchTickets(t *testing.T) {
 }
 
 func TestTicketMetrics(t *testing.T) {
+	splitTicketCount = 8
 	testCases := []STTestCase{
 		{
 			Query:                "type:ticket",
@@ -206,22 +207,22 @@ func TestTicketMetrics(t *testing.T) {
 					ReplaceBodyWithServer: true,
 					FullPath:              "/api/v2/search.json?query=type%3Aticket",
 					ResponseBody: `{"results": [{"id": 1, "tags": ["important", "test"]},` +
-						`{"id": 2, "tags": ["important", "test"]}], "count": 2, "next_page": ` +
-						`"%s/api/v2/search.json?page=2" }`,
+						`{"id": 2, "tags": ["important", "test"]}], "count": 2, "next_page": "%s/api/v2/search.json?page=2" }`,
 				},
 				{
 					FullPath: "/api/v2/search.json?page=2",
-					ResponseBody: `{"results": [{"id": 3, "tags": ["beta", "important"]},` +
-						`{"id": 4, "tags": ["expired", "important"]}], "count": 2 }`,
+					ResponseBody: `{"results": [{"id": 3, "tags": ["beta", "important"]},
+						{"id": 4, "tags": ["expired", "important"]},{"id":5},{"id":6},{"id":7},
+						{"id":8},{"id":9},{"id":10},{"id":11},{"id":12},{"id":13},{"id":14}], "count": 20}`,
 				},
 				{
 					ReplaceBodyWithServer: true,
-					FullPath:              "/api/v2/tickets/show_many.json?ids=1%2C2%2C3%2C4&include=metric_sets",
-					ResponseBody: `{"tickets":[{"metric_set": {"reply_time_in_minutes": {"calendar": 123},` +
-						`"full_resolution_time_in_minutes": {"business": 120, "calendar": 100}}}], "next_page": "%s/api/v2/tickets/show_many.json?page=2" }`,
+					FullPath:              "/api/v2/tickets/show_many.json?ids=1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9&include=metric_sets",
+					ResponseBody: `{"tickets":[{"metric_set": {"reply_time_in_minutes": {"calendar": 123},
+									"full_resolution_time_in_minutes": {"business": 120, "calendar": 100}}}]}`,
 				},
 				{
-					FullPath:     "/api/v2/tickets/show_many.json?page=2",
+					FullPath:     "/api/v2/tickets/show_many.json?ids=10%2C11%2C12%2C13%2C14&include=metric_sets",
 					ResponseBody: `{"tickets":[{"metric_set": {"reply_time_in_minutes": {"calendar": 103}}}]}`,
 				},
 			},

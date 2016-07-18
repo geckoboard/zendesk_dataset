@@ -13,6 +13,8 @@ import (
 	"github.com/geckoboard/zendesk_dataset/conf"
 )
 
+var splitTicketCount = 98
+
 // Client holds the Zendesk auth and whether the client should paginate.
 type Client struct {
 	Auth            conf.Auth
@@ -150,48 +152,50 @@ func (c *Client) TicketMetrics(q *Query) (*TicketMetrics, error) {
 
 	//Extract all the ticket ids
 	var bf bytes.Buffer
+	var tickets []Ticket
+
 	for i, t := range tp.Tickets {
 		bf.WriteString(strconv.Itoa(t.ID))
-		if i != len(tp.Tickets)-1 {
+
+		if (i != 0 && i%splitTicketCount == 0) || i == len(tp.Tickets)-1 {
+			qy := &Query{
+				Endpoint: ticketsPath,
+				ExtraParams: map[string]string{
+					"include": "metric_sets",
+					"ids":     bf.String(),
+				},
+			}
+
+			url, err := c.buildURL(qy)
+
+			if err != nil {
+				return nil, err
+			}
+
+			req, err := c.buildRequest("GET", url)
+			if err != nil {
+				return nil, err
+			}
+
+			resp, err := httpClt.Do(req)
+			if err != nil {
+				return nil, err
+			}
+
+			defer resp.Body.Close()
+
+			var tm TicketMetrics
+			err = json.NewDecoder(resp.Body).Decode(&tm)
+
+			if err != nil {
+				return nil, err
+			}
+
+			tickets = append(tickets, tm.Tickets...)
+			bf.Reset()
+		} else {
 			bf.WriteString(",")
 		}
-	}
-
-	qy := &Query{
-		Endpoint: ticketsPath,
-		ExtraParams: map[string]string{
-			"include": "metric_sets",
-			"ids":     bf.String(),
-		},
-	}
-
-	url, err := c.buildURL(qy)
-	var tickets []Ticket
-	if err != nil {
-		return nil, err
-	}
-
-	for url != "" {
-		req, err := c.buildRequest("GET", url)
-		if err != nil {
-			return nil, err
-		}
-
-		resp, err := httpClt.Do(req)
-		if err != nil {
-			return nil, err
-		}
-
-		defer resp.Body.Close()
-
-		var tm TicketMetrics
-		err = json.NewDecoder(resp.Body).Decode(&tm)
-		if err != nil {
-			return nil, err
-		}
-
-		url = tm.NextPage
-		tickets = append(tickets, tm.Tickets...)
 	}
 
 	return &TicketMetrics{Count: len(tickets), Tickets: tickets}, nil

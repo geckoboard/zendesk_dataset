@@ -109,7 +109,7 @@ func detailedMetrics(r *conf.Report, c *conf.Config) error {
 		Count    int    `json:"count"`
 	}
 
-	client := newClient(&c.Zendesk.Auth, false)
+	client := newClient(&c.Zendesk.Auth, true)
 	gbData := make([]MetricData, len(r.MetricOptions.Grouping))
 
 	tm, err := client.TicketMetrics(&Query{Params: r.Filter.BuildQuery(&timeNow)})

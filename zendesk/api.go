@@ -39,9 +39,8 @@ type Ticket struct {
 
 // TicketMetrics is the tickets/show_many.json schema.
 type TicketMetrics struct {
-	Tickets  []Ticket `json:tickets`
-	Count    int      `json:"count"`
-	NextPage string   `json:"next_page"`
+	Tickets []Ticket `json:tickets`
+	Count   int      `json:"count"`
 }
 
 func (t Ticket) subTimeMetric(attr conf.MetricAttribute) *SubTimeMetric {
