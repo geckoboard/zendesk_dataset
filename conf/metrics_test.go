@@ -29,9 +29,9 @@ func TestValid(t *testing.T) {
 		m   MetricOption
 		err error
 	}{
-		{m: MetricOption{}, err: errEmptyMetricOptions},
-		{m: MetricOption{Attribute: "Test"}, err: errInvalidAttribute},
-		{m: MetricOption{Attribute: ReplyTime, Unit: "Test"}, err: errInvalidUnit},
+		{m: MetricOption{}, err: ErrEmptyMetricOptions},
+		{m: MetricOption{Attribute: "Test"}, err: ErrInvalidAttribute},
+		{m: MetricOption{Attribute: ReplyTime, Unit: "Test"}, err: ErrInvalidUnit},
 		{m: MetricOption{Attribute: ReplyTime, Unit: BusinessMetric}},
 		{m: MetricOption{Attribute: FirstResolutionTime, Unit: CalendarMetric}},
 		{m: MetricOption{Attribute: FullResolutionTime, Unit: CalendarMetric}},
@@ -58,12 +58,12 @@ func TestGroupingsValid(t *testing.T) {
 		m   MetricOption
 		err error
 	}{
-		{m: MetricOption{Grouping: []MetricGroup{}}, err: errEmptyGrouping},
-		{m: MetricOption{Grouping: []MetricGroup{{Unit: "tst", From: 0, To: 1}}}, err: errInvalidGroupUnit},
-		{m: MetricOption{Grouping: []MetricGroup{{Unit: day, From: 1, To: 3}}}, err: errInvalidGroupUnit},
-		{m: MetricOption{Grouping: []MetricGroup{{Unit: minute, From: 1, To: 0}}}, err: errFromGreaterThanTo},
-		{m: MetricOption{Grouping: []MetricGroup{{Unit: minute, From: 3, To: 3}}}, err: errFromEqualToTo},
-		{m: MetricOption{Grouping: []MetricGroup{{Unit: minute, From: 2, To: 3}, {Unit: day}}}, err: errInvalidGroupUnit},
+		{m: MetricOption{Grouping: []MetricGroup{}}, err: ErrEmptyGrouping},
+		{m: MetricOption{Grouping: []MetricGroup{{Unit: "tst", From: 0, To: 1}}}, err: ErrInvalidGroupUnit},
+		{m: MetricOption{Grouping: []MetricGroup{{Unit: day, From: 1, To: 3}}}, err: ErrInvalidGroupUnit},
+		{m: MetricOption{Grouping: []MetricGroup{{Unit: minute, From: 1, To: 0}}}, err: ErrFromGreaterThanTo},
+		{m: MetricOption{Grouping: []MetricGroup{{Unit: minute, From: 3, To: 3}}}, err: ErrFromEqualToTo},
+		{m: MetricOption{Grouping: []MetricGroup{{Unit: minute, From: 2, To: 3}, {Unit: day}}}, err: ErrInvalidGroupUnit},
 		{m: MetricOption{Grouping: []MetricGroup{{Unit: minute, From: 0, To: 1}}}},
 		{m: MetricOption{Grouping: []MetricGroup{{Unit: hour, From: 0, To: 1}}}},
 	}

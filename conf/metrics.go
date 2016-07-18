@@ -3,7 +3,6 @@ package conf
 import (
 	"errors"
 	"fmt"
-	"reflect"
 )
 
 // MetricAttribute defines the allowed metric attributes.
@@ -44,13 +43,20 @@ var (
 
 	validMetricUnits = [2]MetricSubMetric{BusinessMetric, CalendarMetric}
 
-	errInvalidAttribute   = fmt.Errorf("The metric attribute is not valid must be one of %s", validMetricAttributes)
-	errInvalidUnit        = fmt.Errorf("The metric unit is not valid must be one of %s", validMetricUnits)
-	errEmptyMetricOptions = errors.New("The metric options must be present to be valid for a metric report")
-	errEmptyGrouping      = errors.New("The metric grouping is required when using detailed_metric report")
-	errInvalidGroupUnit   = errors.New("The metric group unit is invalid must be one of [minute hour]")
-	errFromGreaterThanTo  = errors.New("The metric group 'from' value must not be greater than the 'to' value")
-	errFromEqualToTo      = errors.New("The metric group 'from' value must not be equal to the 'to' value")
+	// ErrInvalidAttribute is thrown when the metric attribute is invalid.
+	ErrInvalidAttribute = fmt.Errorf("The metric attribute is not valid must be one of %s", validMetricAttributes)
+	// ErrInvalidUnit is thrown when the metric unit is invalid.
+	ErrInvalidUnit = fmt.Errorf("The metric unit is not valid must be one of %s", validMetricUnits)
+	// ErrEmptyMetricOptions is thrown when the metric options are all empty.
+	ErrEmptyMetricOptions = errors.New("The metric options must be present to be valid for a metric report")
+	// ErrEmptyGrouping is thrown when there are no groupings and it is required by the report.
+	ErrEmptyGrouping = errors.New("The metric grouping is required when using detailed_metric report")
+	// ErrInvalidGroupUnit is thrown when one of the grouping unit are invalid.
+	ErrInvalidGroupUnit = errors.New("The metric group unit is invalid must be one of [minute hour]")
+	// ErrFromGreaterThanTo is thrown when the group From is greater than To.
+	ErrFromGreaterThanTo = errors.New("The metric group 'from' value must not be greater than the 'to' value")
+	// ErrFromEqualToTo is thrown when the group From is equal to To.
+	ErrFromEqualToTo = errors.New("The metric group 'from' value must not be equal to the 'to' value")
 )
 
 // MetricOption describes the options for metric reports
@@ -96,32 +102,40 @@ func getUnitInMinutes(unit calendarUnit, val int) int {
 func (m MetricOption) Valid() error {
 	var match bool
 
-	if reflect.DeepEqual(m, MetricOption{}) {
-		return errEmptyMetricOptions
+	if m.IsEmpty() {
+		return ErrEmptyMetricOptions
 	}
 
 	for _, vma := range validMetricAttributes {
 		if vma == m.Attribute {
 			match = true
+			break
 		}
 	}
 
 	if !match {
-		return errInvalidAttribute
+		return ErrInvalidAttribute
 	}
 
 	match = false
 	for _, vmu := range validMetricUnits {
 		if vmu == m.Unit {
 			match = true
+			break
 		}
 	}
 
 	if !match {
-		return errInvalidUnit
+		return ErrInvalidUnit
 	}
 
 	return nil
+}
+
+// IsEmpty return true if the metric option is initialized with just the default values
+// for that data type or false if one of the attributes are not empty.
+func (m MetricOption) IsEmpty() bool {
+	return m.Attribute == "" && m.Unit == "" && len(m.Grouping) == 0
 }
 
 // GroupingValid validates that at least one MetricGroup is present
@@ -129,7 +143,7 @@ func (m MetricOption) Valid() error {
 // Metric Group is valid as well.
 func (m MetricOption) GroupingValid() error {
 	if len(m.Grouping) < 1 {
-		return errEmptyGrouping
+		return ErrEmptyGrouping
 	}
 
 	for _, g := range m.Grouping {
@@ -144,16 +158,16 @@ func (m MetricOption) GroupingValid() error {
 func (m MetricGroup) valid() error {
 	if m.Unit != minute {
 		if m.Unit != hour {
-			return errInvalidGroupUnit
+			return ErrInvalidGroupUnit
 		}
 	}
 
 	if m.From > m.To {
-		return errFromGreaterThanTo
+		return ErrFromGreaterThanTo
 	}
 
 	if m.From == m.To {
-		return errFromEqualToTo
+		return ErrFromEqualToTo
 	}
 
 	return nil
