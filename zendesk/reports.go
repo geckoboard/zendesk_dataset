@@ -173,8 +173,8 @@ func ticketCountsByDay(r *conf.Report, c *conf.Config) error {
 		return err
 	}
 
-	var found bool
 	for _, t := range tp.Tickets {
+		found := false
 		td := t.CreatedAt.Format(dateFormat)
 
 		for i, dc := range gbData {
@@ -185,11 +185,11 @@ func ticketCountsByDay(r *conf.Report, c *conf.Config) error {
 			}
 		}
 
-		if !found {
-			gbData = append(gbData, DateData{Date: td, Count: 1})
+		if found {
+			continue
 		}
 
-		found = false
+		gbData = append(gbData, DateData{Date: td, Count: 1})
 	}
 
 	schema := gb.DataSet{
