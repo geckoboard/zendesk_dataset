@@ -1,50 +1,51 @@
 package conf
 
 import (
-	"encoding/json"
-	"os"
+	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Config is the toplevel instance of the config containing
 // both Geckoboard and Zendesk configurations.
 type Config struct {
-	Geckoboard Geckoboard `json:"geckoboard"`
-	Zendesk    Zendesk    `json:"zendesk"`
+	Geckoboard Geckoboard `yaml:"geckoboard"`
+	Zendesk    Zendesk    `yaml:"zendesk"`
 }
 
 // Geckoboard describes the authentication options.
 type Geckoboard struct {
-	APIKey string `json:"api_key"`
-	URL    string `json:"url"`
+	APIKey string `yaml:"api_key"`
+	URL    string `yaml:"url"`
 }
 
 // Auth makes up the Zendesk authentication options.
 type Auth struct {
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	APIKey    string `json:"api_key"`
-	Subdomain string `json:"subdomain"`
+	Email     string `yaml:"email"`
+	Password  string `yaml:"password"`
+	APIKey    string `yaml:"api_key"`
+	Subdomain string `yaml:"subdomain"`
 }
 
 // Zendesk contains Auth and a slice of Reports.
 type Zendesk struct {
-	Auth    Auth     `json:"auth"`
-	Reports []Report `json:"reports"`
+	Auth    Auth     `yaml:"auth"`
+	Reports []Report `yaml:"reports"`
 }
 
 // Report describes the template to use and the filters to build for the Zendesk request.
 type Report struct {
-	Name          string       `json:"name"`
-	DataSet       string       `json:"dataset"`
-	GroupBy       GroupBy      `json:"group_by"`
-	Filter        SearchFilter `json:"filter"`
-	MetricOptions MetricOption `json:"metric_options"`
+	Name          string       `yaml:"name"`
+	DataSet       string       `yaml:"dataset"`
+	GroupBy       GroupBy      `yaml:"group_by"`
+	Filter        SearchFilter `yaml:"filter"`
+	MetricOptions MetricOption `yaml:"metric_options"`
 }
 
 // GroupBy describes how a report should be grouped.
 type GroupBy struct {
-	Key  string `json:"key"`
-	Name string `json:"name"`
+	Key  string `yaml:"key"`
+	Name string `yaml:"name"`
 }
 
 // DisplayName returns the key if Name attribute is an empty string
@@ -58,18 +59,16 @@ func (gb *GroupBy) DisplayName() string {
 }
 
 // LoadConfig take path and attempts to open the file and
-// returns any errors that might occur with json syntax or file issues.
+// returns any errors that might occur with yaml syntax or file issues.
 func LoadConfig(path string) (*Config, error) {
 	var config Config
 
-	file, err := os.Open(path)
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	defer file.Close()
-
-	if err := json.NewDecoder(file).Decode(&config); err != nil {
+	if err := yaml.Unmarshal(b, &config); err != nil {
 		return nil, err
 	}
 

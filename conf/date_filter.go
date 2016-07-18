@@ -35,10 +35,10 @@ var validDateOperators = [3]string{">", ":", "<"}
 
 // DateFilter represents a date filter on the zendesk search api.
 type DateFilter struct {
-	Attribute dateAttribute `json:"attribute"`
-	Unit      calendarUnit  `json:"unit"`
-	Custom    string        `json:"custom"`
-	Past      int           `json:"past"`
+	Attribute dateAttribute `yaml:"attribute"`
+	Unit      calendarUnit  `yaml:"unit"`
+	Custom    string        `yaml:"custom"`
+	Past      int           `yaml:"past"`
 }
 
 // Validate returns first error it occurs otherwise nil based on the user options.
