@@ -1,0 +1,50 @@
+---
+geckoboard:
+  api_key: Ap1K4y
+  url: https://testing.geckoboardexample.com
+zendesk:
+  auth:
+    api_key: '12345'
+    email: test@example.com
+    password: test
+    subdomain: testing
+  reports:
+  - name: report_1
+    dataset: dataset1
+    filter:
+      date_range:
+      - attribute: created
+        custom: ''
+        past: 14
+        unit: day
+      - attribute: created
+        custom: "<2017-01-01"
+        past: 0
+        unit: ''
+      type: ticket
+      value:
+        'status:': open
+      values:
+        'tags:':
+        - beta
+        - freetrial
+        - account_expired
+  - name: report_2
+    dataset: dataset2
+    metric_options:
+      attribute: reply_time
+      unit: business
+      grouping:
+      - from: 0
+        to: 1
+        unit: minute
+      - from: 1
+        to: 8
+        unit: minute
+    filter:
+      date_range:
+      - attribute: created
+        custom: ''
+        past: 14
+        unit: day
+

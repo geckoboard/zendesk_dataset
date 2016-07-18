@@ -23,36 +23,26 @@ First you will need to edit the Geckoboard `api_key` to match the one found in t
 
 You can authenticate with Zendesk using either a password or an API key. To authenticate with email and password supply the `email` and `password` options. To authenticate with an API key you'll first generate one in Zendesk by heading to Admin > Channels > API. Then, in the config file, supply the `api_key` and `email` options. **In both cases your Zendesk `subdomain` must be supplied.**
 
-```
-{
-    "geckoboard": {
-        "api_key": "Ap1K4y",
-        "url": "https://api.geckoboard.com"
-    },
-    "zendesk": {
-        "auth": {
-            "api_key": "12345",
-            "email": "test@example.com",
-            "password": "test",
-            "subdomain": "testing"
-        },
-        "reports": [
-            {
-                "Name": "ticket_counts",
-                "dataset": "tickets.created.in.last.30.days",
-                "filter": {
-                    "date_range": [
-                        {
-                            "attribute": "created",
-                            "past": 30,
-                            "unit": "day"
-                        }
-                    ]
-                }
-            }
-        ]
-    }
-}
+```yaml
+---
+geckoboard:
+  api_key: Ap1K4y
+  url: https://api.geckoboard.com
+zendesk:
+  auth:
+    api_key: '12345'
+    email: test@example.com
+    password: test
+    subdomain: testing
+  reports:
+  - name: ticket_counts
+    dataset: tickets.created.in.last.30.days
+    filter:
+      date_range:
+      - attribute: created
+        past: 30
+        unit: day
+
 ```
 
 ## 3. Run the program
