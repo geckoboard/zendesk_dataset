@@ -1,10 +1,11 @@
 # Getting Started
 
-## 1. Download the correct Binary
+## 1. Setup
 
 As this is a Go application there's no need to install any libraries to get started.
 
-Click on the operating system below that you plan to try this on to run the program
+Click on the operating system below that you plan to try this on to run the program, which will
+guide you through download the binary and an example configuration file to get started.
 
 * [Windows 7/8/10](windows_setup.md)
 * [Mac OSX](osx_setup.md)

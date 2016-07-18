@@ -35,7 +35,7 @@ reports:
 
 #### Name
 
-The `name` is the name of the report template to be used. At the moment we only support one report template, called `ticket_counts`. As we expand the application, more templates will become available.
+The `name` is the name of the report template to be used. Checkout what reports are supported and some examples [here](supported_reports.md). As we expand the application, more templates will become available.
 
 ```yaml
 name: ticket_counts,

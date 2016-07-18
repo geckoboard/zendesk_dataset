@@ -1,7 +1,15 @@
 # Supported Reports
 
-**Missing a report ?** that you would like to report into Geckoboard. Please mention it on the
-Geckoboard community to see if others will find it useful and we will implement it within due time.
+**Missing a report ?** that you would like to report into Geckoboard.
+Please mention it on the [Geckoboard community](https://community.geckoboard.com/t/zendesk-dataset-program/213) to see if
+others will also find it useful and understand both use cases.
+
+Supported Report Templates;
+
+* [Ticket Counts](#ticket-counts)  *based on many possible filters by day/tags/status*
+* [Ticket Counts by day](#ticket-counts-by-day)
+* [Ticket Metrics](#detailed-ticket-metrics)
+
 
 ## Ticket counts
 
@@ -23,8 +31,6 @@ You can also further group the above for example;
 You are using tags to describe tickets for a region, with the group_by config option this is now
 possible just by telling us to group by it, and then it will report the count for each tag in the
 list.
-
-### Example Report Section
 
 #### Tickets status created in the last 30 days
 
@@ -71,7 +77,7 @@ list.
 ```yaml
   - name: ticket_counts
     dataset: zendesk.tickets.created.in.last.week.by.region
-    grouped_by:
+    group_by:
       key: "tags:"
       name: "Tags"
     filter:
@@ -138,8 +144,6 @@ for more information on the subject.
 Also these metrics are the detailed metrics and allow you to group the metric in time boxes of your
 choosing which can then be plotted on a bar/column chart. The **metric options** are required and
 all of it sub options.
-
-### Example Reports
 
 #### First reply time using business metric
 

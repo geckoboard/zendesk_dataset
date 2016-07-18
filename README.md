@@ -1,11 +1,8 @@
 # Zendesk Datasets
 
-## Start here...
-
 * [Getting Started](doc/getting_started.md)
 * [Supported Reports](doc/supported_reports.md)
 * [Modifying the reports](doc/modifying_report.md)
-
 
 ## Background
 
