@@ -3,8 +3,8 @@
 First you need to ensure to download the correct binary for your hardware.
 If you are not sure which version to download just select the 32-bit version.
 
-* [Windows 32-bit exe file](https://github.com/geckoboard/zendesk_dataset/releases/download/v0.1.0/zendesk_dataset_windows_x86.exe)
-* [Windows 64-bit exe file](https://github.com/geckoboard/zendesk_dataset/releases/download/v0.1.0/zendesk_dataset_windows_x64.exe)
+* [Windows 32-bit exe file](https://github.com/geckoboard/zendesk_dataset/releases/download/v0.2.0/zendesk_dataset_windows_x86.exe)
+* [Windows 64-bit exe file](https://github.com/geckoboard/zendesk_dataset/releases/download/v0.2.0/zendesk_dataset_windows_x64.exe)
 
 When downloading the executable file you may get some red warnings such as the following
 

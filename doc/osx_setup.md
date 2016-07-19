@@ -2,7 +2,7 @@
 
 First you need to download the zendesk dataset program.
 
-* [OSX program](https://github.com/geckoboard/zendesk_dataset/releases/download/v0.1.0/zendesk_dataset_osx_x64)
+* [OSX program](https://github.com/geckoboard/zendesk_dataset/releases/download/v0.2.0/zendesk_dataset_osx_x64)
 
 ## Downloading an example configuration file
 
