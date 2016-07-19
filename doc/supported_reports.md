@@ -39,7 +39,7 @@ list.
     dataset: zendesk.tickets.solved.in.last.month
     filter:
       date_range:
-        past: 30
+      - past: 30
         unit: day
 ```
 
@@ -51,7 +51,7 @@ list.
     dataset: zendesk.tickets.not.solved.in.last.fortnight
     filter:
       date_range:
-        past: 1
+      - past: 1
         unit: month
       value:
         'status<': solved
@@ -64,7 +64,7 @@ list.
     dataset: zendesk.tickets.pending.reply.still.update.in.last.month
     filter:
       date_range:
-        attribute: updated
+      - attribute: updated
         past: 1
         unit: month
       value:
@@ -82,7 +82,7 @@ list.
       name: "Tags"
     filter:
       date_range:
-        past: 7
+      - past: 7
         unit: day
       values:
         'tags:':
@@ -114,7 +114,7 @@ One common report for counts by day would be the following example
     dataset: zendesk.tickets.solved.in.last.6.months
     filter:
       date_range:
-        past: 6
+      - past: 6
         unit: month
 ```
 
@@ -168,7 +168,7 @@ all of it sub options.
         unit: hour
     filter:
       date_range:
-        past: 7
+      - past: 7
         unit: day
 ```
 
@@ -195,7 +195,7 @@ all of it sub options.
         unit: hour
     filter:
       date_range:
-        past: 1
+      - past: 1
         unit: month
       value:
         'status:': solved
